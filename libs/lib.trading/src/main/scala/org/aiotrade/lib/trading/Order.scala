@@ -1,12 +1,13 @@
 package org.aiotrade.lib.trading
 
+import java.util.Date
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
 
-class Order protected (val account: Account, val tpe: OrderType, val side: OrderSide, val sec: Sec, val quantity: Double, val price: Double, var route: OrderRoute) extends Publisher {
+class Order(val account: Account, val sec: Sec, var quantity: Double, var price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _id: Long = _
@@ -92,75 +93,41 @@ class Order protected (val account: Account, val tpe: OrderType, val side: Order
   }
   
   def transactions = _transactions.toArray
-  def addTransaction(transaction: Transaction) {
-    _transactions += transaction
-  }
   
-  def fill(time: Long, size: Double, price: Double): OrderStatus =  {
-    var totalPrice = filledQuantity * averagePrice
-    val remainQuantity = quantity - filledQuantity
-
-    val executedQuantity = if (size > remainQuantity) {
-      // should only happen in case of paper work
-      remainQuantity
-    } else {
-      size
-    }
+  def fill(time: Long, price: Double, size: Double) {
+    val remainQuantity = quantity - _filledQuantity
+    val executedQuantity = math.min(size, remainQuantity)
     
-    filledQuantity += executedQuantity
-    totalPrice += executedQuantity * price
-    averagePrice = totalPrice / filledQuantity
-
     if (executedQuantity > 0) {
+      var oldTotalAmount = _filledQuantity * _averagePrice
+      _filledQuantity += executedQuantity
+      _averagePrice = (oldTotalAmount + executedQuantity * price) / _filledQuantity
+
       side match {
         case OrderSide.Buy | OrderSide.BuyCover =>
-          addTransaction(new SecurityTransaction(time, sec, executedQuantity, price))
+          _transactions += SecurityTransaction(time, sec,  executedQuantity, price)
         case OrderSide.Sell | OrderSide.SellShort =>
-          addTransaction(new SecurityTransaction(time, sec, -executedQuantity, price))
+          _transactions += SecurityTransaction(time, sec, -executedQuantity, price)
         case _ =>
       }
-    }
 
-    log.info("Order Filled: %s".format(this))
+      if (_filledQuantity == quantity) {
+        status = OrderStatus.Filled
+      } else {
+        status = OrderStatus.Partial
+      }
 
-    if (filledQuantity == quantity) {
-      status = OrderStatus.Filled
-      account.processCompletedOrder(time, this)
-    } else {
-      status = OrderStatus.Partial
+      log.info("Order Filled: %s".format(this))
+
+      account.processFilledOrder(time, this)
     }
-    
-    status
   }
   
   override
   def toString = {
-    val sb = new StringBuilder()
-    sb.append("Order: time=" + time)
-    sb.append(", sec=" + sec.uniSymbol)
-    sb.append(", tpe=" + tpe)
-    sb.append(", side=" + side)
-    sb.append(", quantity=" + quantity)
-    sb.append(", price=" + price)
-    sb.append(", stopPrice=" + stopPrice)
-    sb.append(", timeInForce=" + validity)
-    sb.append(", expiration=" + expireTime)
-    sb.append(", reference=" + reference)
-    sb.toString
-  }
-}
-
-object Order {
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double, price: Double, route: OrderRoute) = {
-    new Order(account, tpe, side, sec, quantity, price, route)
-  }
-  
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double, price: Double) = {
-    new Order(account, tpe, side, sec, quantity, price, null)
-  }
-
-  def apply(account: Account, tpe: OrderType, side: OrderSide, sec: Sec, quantity: Double) = {
-    new Order(account, OrderType.Market, side, sec, quantity, Double.NaN, null)
+    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity=%5$s, price=%6$s, status=%7$s, stopPrice=%8$s, validity=%9$s, expiration=%10$s, refrence=%11$s".format(
+      new Date(time), sec.uniSymbol, tpe, side, quantity, price, status, stopPrice, validity, expireTime, reference
+    )
   }
 }
 
@@ -173,8 +140,8 @@ abstract class OrderSide(val name: String)
 object OrderSide {
   case object Buy extends OrderSide("Buy")
   case object Sell extends OrderSide("Sell")
-  case object BuyCover extends OrderSide("BuyCover")
   case object SellShort extends OrderSide("SellShort")
+  case object BuyCover extends OrderSide("BuyCover")
 }
 
 abstract class OrderType(val name: String)

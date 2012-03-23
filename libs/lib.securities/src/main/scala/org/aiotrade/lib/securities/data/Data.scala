@@ -71,6 +71,7 @@ default-character-set=utf8
  * 
  * Import dump db
  * mysql > create database faster
+ * $ gzip -d faster.dump.gz
  * $ nohup time mysql -uuser -ppasswd faster < faster.dump &
  * 
  * Check msyql err log:

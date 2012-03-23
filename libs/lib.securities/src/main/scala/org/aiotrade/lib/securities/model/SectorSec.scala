@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.securities.model
 
+import org.aiotrade.lib.util.ValidTime
 import ru.circumflex.orm.Table
 
 /**
@@ -45,6 +46,9 @@ class SectorSec {
   var validFrom: Long = _
   var validTo: Long = _
 
+  def toSecValidTime: ValidTime[Sec] = ValidTime(sec, validFrom, validTo)
+  def toSectorValidTime: ValidTime[Sector] = ValidTime(sector, validFrom, validTo)
+  
   override def toString = {
     "SectorSec(sector.key=" + sectorKey + ", " + (if (sec == null) "with null sec ?" else " with good sec") + ")"
   }

@@ -177,7 +177,7 @@ class AnalysisChartView(acontroller: ChartingController,
   }
     
   private def refreshQuoteCompareSer {
-    val optsForCompareIndicator = Array(
+    val factorsForCompareIndicator = Array(
       new Factor("Begin of Time Frame", rb(1)),
       new Factor("End of Time Frame",   rb(nBars)),
       new Factor("Max Value", maxValue),
@@ -185,7 +185,7 @@ class AnalysisChartView(acontroller: ChartingController,
     )
         
     for (ser <- getCompareIndicators) {
-      ser.factors = optsForCompareIndicator.asInstanceOf[Array[Factor]]
+      ser.factors = factorsForCompareIndicator.asInstanceOf[Array[Factor]]
     }
   }
     

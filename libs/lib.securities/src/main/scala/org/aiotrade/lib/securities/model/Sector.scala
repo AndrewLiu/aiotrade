@@ -533,7 +533,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     for (sectorSec <- sectorSecs) {
       if (sectorSec.sector != null && sectorSec.sec != null) {
         val key = sectorSec.sec.crckey
-        val validTime = ValidTime(sectorSec.sector, sectorSec.validFrom, sectorSec.validTo)
+        val validTime = sectorSec.toSectorValidTime
         val validTimes = result.get(key) match {
           case None =>
             val validTimes = mutable.ListBuffer[ValidTime[Sector]]()
@@ -575,7 +575,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     for (sectorSec <- sectorSecs) {
       if (sectorSec.sec ne null) {
         val key = sectorSec.sector.key
-        val validTime = ValidTime(sectorSec.sec, sectorSec.validFrom, sectorSec.validTo)
+        val validTime = sectorSec.toSecValidTime
         val validTimes = result.get(key) match {
           case None =>
             val validTimes = mutable.ListBuffer[ValidTime[Sec]]()

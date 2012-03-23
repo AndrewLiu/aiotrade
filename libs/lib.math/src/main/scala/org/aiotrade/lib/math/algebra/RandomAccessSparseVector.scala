@@ -25,15 +25,15 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
   def toString = {
     val sb = new StringBuilder()
     sb.append('{')
-    val it = iterateNonZero
+    val itr = iterateNonZero
     var first = true
-    while (it.hasNext) {
+    while (itr.hasNext) {
       if (first) {
         first = false
       } else {
         sb.append(',')
       }
-      val e = it.next
+      val e = itr.next
       sb.append(e.index)
       sb.append(':')
       sb.append(e.get)
@@ -48,10 +48,12 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
       throw new CardinalityException(size, other.size)
     }
     values.clear
-    val it = other.iterateNonZero
-    var e: Element = null
-    while (it.hasNext && {e = it.next; e != null}) {
-      this(e.index) = e.get
+    val itr = other.iterateNonZero
+    while (itr.hasNext) {
+      val e = itr.next
+      if (e != null && e.get != 0) {
+        this(e.index) = e.get
+      }
     }
     this
   }
@@ -70,7 +72,7 @@ class RandomAccessSparseVector(cardinality: Int, private val values: mutable.Map
 
   override
   def apply(index: Int): Double = {
-    values.get(index).get
+    values.get(index).getOrElse(0.0)
   }
 
   override
@@ -175,10 +177,12 @@ object RandomAccessSparseVector {
 
   def apply(other: Vector) = {
     val values = new mutable.HashMap[Int, Double]() // other.getNumNondefaultElements
-    val it = other.iterateNonZero
-    var e: Vector.Element = null
-    while (it.hasNext && {e = it.next; e != null}) {
-      values += (e.index -> e.get)
+    val itr = other.iterateNonZero
+    while (itr.hasNext) {
+      val e = itr.next
+      if (e != null && e.get != 0.0) {
+        values += (e.index -> e.get)
+      }
     }
     new RandomAccessSparseVector(other.size, values)
   }

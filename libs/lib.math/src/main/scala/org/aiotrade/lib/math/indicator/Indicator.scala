@@ -47,8 +47,10 @@ trait Indicator extends TSer with WithFactors with Ordered[Indicator] {
   protected val Plot = org.aiotrade.lib.math.indicator.Plot
   
   reactions += {
-    case ComputeFrom(time) => computeFrom(time)
-    case FactorEvent => computeFrom(0)
+    case ComputeFrom(time) => 
+      if (baseSer != null) computeFrom(time)
+    case FactorChanged => 
+      if (baseSer != null) computeFrom(0)
   }
 
   def set(baseSer: BaseTSer)
@@ -86,22 +88,9 @@ trait WithFactors {self: Indicator =>
    */
   private var _factors = Array[Factor]()
   
-  def factors: Array[Factor] = _factors
-  def factors_=(factors: Array[Factor]) {
-    if (factors != null) {
-      val values = new Array[Double](factors.length)
-      var i = -1
-      while ({i += 1; i < factors.length}) {
-        values(i) = factors(i).value
-      }
-      factorValues = values
-    }
-  }
-
-  
   def factorValues: Array[Double] = factors map {_.value}
   /**
-   * if any value of factors changed, will publish FactorEvent
+   * if any value of factors changed, will publish FactorChanged
    */
   def factorValues_=(values: Array[Double]) {
     var valueChanged = false
@@ -120,7 +109,19 @@ trait WithFactors {self: Indicator =>
       }
     }
 
-    if (valueChanged) publish(FactorEvent)
+    if (valueChanged) publish(FactorChanged)
+  }
+
+  def factors: Array[Factor] = _factors
+  def factors_=(factors: Array[Factor]) {
+    if (factors != null) {
+      val values = new Array[Double](factors.length)
+      var i = -1
+      while ({i += 1; i < factors.length}) {
+        values(i) = factors(i).value
+      }
+      factorValues = values
+    }
   }
 
   def replaceFactor(oldFactor: Factor, newFactor: Factor) {
@@ -190,9 +191,9 @@ object Indicator {
         /** if got none from idToIndicator, try to create new one */
         try {
           val indicator = klass.newInstance
+          indicator.factors = factors.toArray // set factors first to avoid multiple computeFrom(0)
           /** don't forget to call set(baseSer) immediatley */
           indicator.set(baseSer)
-          indicator.factors = factors.toArray
           idToIndicator.putIfAbsent(id, indicator)
           indicator.computeFrom(0)
           indicator
@@ -203,6 +204,10 @@ object Indicator {
     }
   }
 
+  def releaseAll() {
+    idToIndicator.clear
+  }
+  
   def displayName(ser: TSer): String = ser match {
     case x: Indicator => displayName(ser.shortName, x.factors)
     case _ => ser.shortName

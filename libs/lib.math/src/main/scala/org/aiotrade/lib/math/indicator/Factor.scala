@@ -61,4 +61,4 @@ class Factor(var name: String,
   }
 }
 
-case object FactorEvent
+case object FactorChanged

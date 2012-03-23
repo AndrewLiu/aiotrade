@@ -41,7 +41,7 @@ import org.aiotrade.lib.securities.model._
 
 
 /**
- * @param base series to compute this
+ * @param base series to compute this, not null.
  */
 abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
                                                               with org.aiotrade.lib.math.indicator.Indicator
@@ -50,7 +50,7 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
 
   /**
    * Make sure this null args contructor only be called and return instance to
-   * NetBeans layer manager for register usage, so it just do nothing.
+   * get it registered in desscription etc only. So it just does nothing.
    */
   def this() = this(null)
 
@@ -170,27 +170,29 @@ abstract class Indicator(protected var _baseSer: BaseTSer) extends DefaultTSer
    * @param begin time to be computed
    */
   def computeFrom(fromTime: Long) {
-    setSessionId
+    if (baseSer !=null) {
+      setSessionId
 
-    try {
-      timestamps.readLock.lock
+      try {
+        timestamps.readLock.lock
 
-      val fromIdx = super.preComputeFrom(fromTime)
-      /**
-       * @Note
-       * It's better to pass Size as param to compute(...) instead of keep it as instance field,
-       * so, we do not need to worry about if field _Size will be changed concurrent by another
-       * thread
-       */
-      val size = timestamps.size
+        val fromIdx = super.preComputeFrom(fromTime)
+        /**
+         * @Note
+         * It's better to pass Size as param to compute(...) instead of keep it as instance field,
+         * so, we do not need to worry about if field _Size will be changed concurrent by another
+         * thread
+         */
+        val size = timestamps.size
 
-      compute(fromIdx, size)
+        compute(fromIdx, size)
         
-      _computedTime = timestamps.lastOccurredTime
-      super.postComputeFrom
+        _computedTime = timestamps.lastOccurredTime
+        super.postComputeFrom
       
-    } finally {
-      timestamps.readLock.unlock
+      } finally {
+        timestamps.readLock.unlock
+      }
     }
   }
         

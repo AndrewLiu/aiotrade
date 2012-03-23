@@ -5,4 +5,5 @@ trait Portfolio {
   def description: String
   def account: Account
   def positions: Array[Position]
+  def profit: Double
 }

@@ -48,18 +48,8 @@ import org.aiotrade.lib.collection.ArrayList
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-object TStampsLog {
-  private val KIND   = 0xC000 // 1100 0000 0000 0000
-  private val SIZE   = 0x3FFF // 0011 1111 1111 1111
-
-  val APPEND = 0x0000 // 0000 0000 0000 0000
-  val INSERT = 0x4000 // 0100 0000 0000 0000
-  val REMOVE = 0x8000 // 1000 0000 0000 0000
-  val NUMBER = 0xC000 // 1100 0000 0000 0000
-}
-
-import TStampsLog._
 class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
+  import TStampsLog._
 
   private var _logCursor = -1
   private var _logTime = System.currentTimeMillis
@@ -164,7 +154,8 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
     (hi << 16) + lo
   }
 
-  override def toString: String = {
+  override 
+  def toString: String = {
     val sb = new StringBuilder
     sb.append("TimestampsLog: cursor=").append(_logCursor).append(", size=").append(size).append(", content=")
     var i = 0
@@ -181,6 +172,16 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
     }
     sb.toString
   }
+}
+
+object TStampsLog {
+  private val KIND   = 0xC000 // 1100 0000 0000 0000
+  private val SIZE   = 0x3FFF // 0011 1111 1111 1111
+
+  val APPEND = 0x0000 // 0000 0000 0000 0000
+  val INSERT = 0x4000 // 0100 0000 0000 0000
+  val REMOVE = 0x8000 // 1000 0000 0000 0000
+  val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
 
 import java.util.{Calendar,GregorianCalendar,TimeZone}
@@ -220,13 +221,16 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
    */
   def nearestIndexOfOccurredTime(time: Long): Int
     
-    /**
-     * return index of nearest behind time (include this time (if exist)),
-     * @param time the time, inclusive
-     */
+  /**
+   * @param time the time, inclusive
+   * @return index of nearest behind time (include this time (if exist)),
+   */
   def indexOfNearestOccurredTimeBehind(time: Long): Int
     
-  /** return index of nearest before or equal(if exist) time */
+  /** 
+   * @param time the time, inclusive
+   * @return index of nearest before or equal(if exist) time 
+   */
   def indexOfNearestOccurredTimeBefore(time: Long): Int
     
   def firstOccurredTime: Long
@@ -238,16 +242,10 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
   def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator
 
   /**
-   *this should not be abstract method to get scalac knowing it's a override of
+   * This should not be an abstract method so that scalac knows it's a override of
    * @cloneable instead of java.lang.Object#clone
    */
-  override def clone: TStamps = {super.clone; this}
+  override 
+  def clone: TStamps = {super.clone; this}
 }
-
-
-
-
-
-
-
 
