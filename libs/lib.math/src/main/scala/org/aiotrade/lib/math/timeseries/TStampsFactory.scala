@@ -364,7 +364,7 @@ object TStampsFactory {
             
       def checkForComodification: Unit = {
         if (modCount != expectedModCount)
-        throw new ConcurrentModificationException
+          throw new ConcurrentModificationException
       }
             
       def hasPrevious: Boolean = {
@@ -493,21 +493,21 @@ object TStampsFactory {
 
     override def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)
         
-    override def +(elem:Long) = delegateTimestamps + elem
+    override def +(elem: Long) = {delegateTimestamps + elem; this}
         
-    override def remove(idx:Int) = delegateTimestamps.remove(idx)
+    override def remove(idx: Int) = delegateTimestamps.remove(idx)
         
-    override def contains(elem:Any) = delegateTimestamps.contains(elem)
+    override def contains(elem: Any) = delegateTimestamps.contains(elem)
         
-    //override def ++[B >: Long](that:Iterable[B]) = delegateTimestamps ++ that
+    override def ++(xs: TraversableOnce[Long]) = {delegateTimestamps ++ xs; this}
 
-    def insert(n:Int, elems:Long) = delegateTimestamps.insert(n, elems)
+    def insert(n:Int, elems: Long) = delegateTimestamps.insert(n, elems)
 
-    //override def insertAll(n:Int, iter:Iterable[Long]) = delegateTimestamps.insertAll(n, iter)
+    override def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq); this}
         
     override def clear = delegateTimestamps.clear
         
-    override def equals(o:Any) = delegateTimestamps.equals(o)
+    override def equals(o: Any) = delegateTimestamps.equals(o)
         
     override def hashCode = delegateTimestamps.hashCode
         
