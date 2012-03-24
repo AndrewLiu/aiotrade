@@ -117,7 +117,7 @@ class LanczosSolver {
       val size = math.min(ejCol.size, state.getBasisSize)
       var j = 0
       while (j < size) {
-        val d = ejCol.get(j);
+        val d = ejCol.get(j)
         val rowJ = state.getBasisVector(j).getOrElse(null)
         if(realEigen == null) {
           realEigen = rowJ.like

@@ -24,14 +24,14 @@ package object securities {
   private val config = org.aiotrade.lib.util.config.Config()
   private val isServer = !config.getBool("dataserver.client", false)
 
-  def getSecsOfSector(category: String) = {
+  def getSecsOfSector(category: String, code: String) = {
     val sectors = if (isServer) {
       SELECT (Sectors.*) FROM (Sectors) list()
     } else {
       SELECT (Sectors.*) FROM (AVRO(Sectors)) list()
     }
-    sectors foreach {x => log.info("%s, category=%s, id=%s".format(x.name, x.category, Sectors.idOf(x)))}
-    val sector = sectors.find(_.category == category).get
+    sectors foreach {x => log.info("%s, category=%s, code=%s, id=%s".format(x.name, x.category, x.code, Sectors.idOf(x)))}
+    val sector = sectors.find(x => x.category == category && x.code == code).get
     val sectorId = Sectors.idOf(sector)
     val secsHolder = Exchange.uniSymbolToSec
     val secs = if (isServer) {

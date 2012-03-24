@@ -372,8 +372,9 @@ object TradingService extends Publisher {
   }
   
   private def init = {
-    val CSI300Category = "008011"
-    val secs = securities.getSecsOfSector(CSI300Category)
+    val category = "008011"
+    val CSI300Code = "399300.SZ"
+    val secs = securities.getSecsOfSector(category, CSI300Code)
     val referSec = Exchange.secOf("000001.SS").get
     val referSer = securities.loadSers(secs, referSec, TFreq.DAILY)
     val goodSecs = secs filter {_.serOf(TFreq.DAILY).get.size > 0}
