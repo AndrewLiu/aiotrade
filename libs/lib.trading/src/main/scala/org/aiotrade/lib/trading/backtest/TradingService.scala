@@ -137,8 +137,8 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       updatePositionsPrice
       // @todo process unfilled orders
 
-      TradingService.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
-      TradingService.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
+      ReportPublisher.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      ReportPublisher.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
@@ -363,7 +363,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 
 }
 
-object TradingService extends Publisher {
+object TradingService {
   
   def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
@@ -407,8 +407,8 @@ object TradingService extends Publisher {
     val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
     val chartReport = new ChartReport(imageFileDir)
     
-    report.listenTo(TradingService)
-    chartReport.listenTo(TradingService)
+    report.listenTo(ReportPublisher)
+    chartReport.listenTo(ReportPublisher)
 
     val (secs, referSer) = init
     
@@ -451,9 +451,9 @@ object TradingService extends Publisher {
         }
       }
     
-      TradingService.publish(RoundStarted(param))
+      ReportPublisher.publish(RoundStarted(param))
       tradingService.go(fromTime, toTime)
-      TradingService.publish(RoundFinished(param))
+      ReportPublisher.publish(RoundFinished(param))
       System.gc
     }
     

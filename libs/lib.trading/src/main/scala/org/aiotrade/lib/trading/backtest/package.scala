@@ -1,5 +1,7 @@
 package org.aiotrade.lib.trading
 
+import org.aiotrade.lib.util.actors.Publisher
+
 /**
  * @author Caoyuan Deng
  */
@@ -17,4 +19,6 @@ package backtest {
   case class RoundFinished(params: Param)
 
   case class ReportData(name: String, id: Int, time: Long, value: Double)
+  
+  object ReportPublisher extends Publisher
 }
