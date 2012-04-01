@@ -23,7 +23,7 @@ import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.SecPicking
 import org.aiotrade.lib.trading.SecPickingEvent
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
-import org.aiotrade.lib.trading.TradeRule
+import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
@@ -34,7 +34,7 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
+class TradingService(broker: Broker, account: Account, tradingRule: TradingRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   private case class Go(fromTime: Long, toTime: Long)
@@ -181,10 +181,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   
   protected def checkStopCondition {
     for ((sec, position) <- account.positions) {
-      if (tradeRule.cutLossRule(position)) {
+      if (tradingRule.cutLossRule(position)) {
         triggers += Trigger(sec, position, closeTime, Side.CutLoss)
       }
-      if (tradeRule.takeProfitRule(position)) {
+      if (tradingRule.takeProfitRule(position)) {
         triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
       }
     }
@@ -251,7 +251,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     while ({amount = calcTotalFund(buyingOrders); amount > account.balance}) {
       orders match {
         case order :: tail =>
-          order.quantity -= tradeRule.quantityPerLot
+          order.quantity -= tradingRule.quantityPerLot
           orders = tail
         case Nil => 
           orders = buyingOrders
@@ -336,17 +336,17 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       side match {
         case OrderSide.Buy =>
           if (_price.isNaN) {
-            _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+            _price = tradingRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity = tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
+            _quantity = tradingRule.buyQuantityRule(ser.volume(idx), _price, _fund)
           }
         case OrderSide.Sell =>
           if (_price.isNaN) {
-            _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+            _price = tradingRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity = tradeRule.sellQuantityRule(ser.volume(idx), _price, _fund)
+            _quantity = tradingRule.sellQuantityRule(ser.volume(idx), _price, _fund)
           }
         case _ =>
       }
@@ -424,10 +424,10 @@ object TradingService {
       val broker = new PaperBroker("Backtest")
       val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     
-      val tradeRule = new TradeRule()
+      val tradingRule = new TradingRule()
       val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
     
-      val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, indTemplate) {
+      val tradingService = new TradingService(broker, account, tradingRule, referSer, secPicking, indTemplate) {
         override 
         def at(idx: Int) {
           val triggers = scanTriggers(idx)

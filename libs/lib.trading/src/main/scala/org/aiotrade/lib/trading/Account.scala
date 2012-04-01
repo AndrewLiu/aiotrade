@@ -53,7 +53,10 @@ class Account(private var _description: String,
 
     _balance -= transaction.amount
 
-    val quantity = if (order.side == OrderSide.Sell) -order.filledQuantity else order.filledQuantity
+    val quantity = order.side match {
+      case OrderSide.Sell | OrderSide.SellShort => -order.filledQuantity 
+      case OrderSide.Buy  | OrderSide.BuyCover  =>  order.filledQuantity
+    }
     val averagePrice = transaction.amount / order.filledQuantity
     
     _secToPositions.get(order.sec) match {
