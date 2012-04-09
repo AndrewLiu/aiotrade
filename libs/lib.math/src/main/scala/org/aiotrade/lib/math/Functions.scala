@@ -116,7 +116,7 @@ object Functions {
   val INV = (a: Double) => 1.0 / a
 
   /** Function that returns <tt>math.log(a)</tt>. */
-  val LOGARITHM = (a: Double) =>  math.log(a)
+  val LOGARITHM = (a: Double) => math.log(a)
 
   /** Function that returns <tt>math.log(a) / math.log(2)</tt>. */
   val LOG2 = (a: Double) => math.log(a) * 1.4426950408889634

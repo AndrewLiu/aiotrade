@@ -182,7 +182,7 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
    *
    */
   @deprecated
-  override def +(elem: A) :ArrayList[A] = {
+  override def +(elem: A): this.type = {
     assert(false, "+(elem:A) is not supported by this collection! " +
            ", please use add(long time, E o)")
     this
