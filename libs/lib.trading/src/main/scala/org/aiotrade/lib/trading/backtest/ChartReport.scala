@@ -119,7 +119,7 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
     runInFXThread {
       idToSeries.clear
       dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
-      dataChart.setTitle("Profit Monitoring - " + param)
+      dataChart.setTitle("Profit Monitoring - " + param.conciseDescription)
       referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
     }
   }

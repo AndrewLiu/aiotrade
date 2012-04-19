@@ -7,6 +7,9 @@ import org.aiotrade.lib.util.actors.Publisher
  */
 package backtest {
   trait Param {
+    /** Used in the image title */
+    def conciseDescription: String = toString
+    /** Used in the image file name */
     def shortDescription: String = toString
   }
   
