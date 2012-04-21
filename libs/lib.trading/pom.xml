@@ -71,7 +71,7 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
                     <launchers>
-                        <!-- mvn scala:run -Dlauncher=backtest -->
+                        <!-- mvn scala:run -Dlauncher=chart -->
                         <launcher>
                             <id>chart</id>
                             <mainClass>org.aiotrade.lib.trading.backtest.ChartReport</mainClass>

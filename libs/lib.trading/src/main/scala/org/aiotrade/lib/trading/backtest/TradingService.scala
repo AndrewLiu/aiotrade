@@ -34,7 +34,7 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradingRule: TradingRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
+class TradingService(broker: Broker, account: Account, param: Param, tradingRule: TradingRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   private case class Go(fromTime: Long, toTime: Long)
@@ -137,8 +137,8 @@ class TradingService(broker: Broker, account: Account, tradingRule: TradingRule,
       updatePositionsPrice
       // @todo process unfilled orders
 
-      ReportPublisher.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
-      ReportPublisher.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
+      param.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
@@ -396,20 +396,9 @@ object TradingService {
     val fromTime = df.parse("2011.04.03").getTime
     val toTime = df.parse("2012.04.03").getTime
     
-    val report = new Publisher {
-      reactions += {
-        case RoundStarted(param) =>
-          println("== " + param + " ==")
-        case ReportData(name, id, time, value) => 
-          println(df.format(new Date(time)) + ": " + value)
-      }
-    }
     val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
     val chartReport = new ChartReport(imageFileDir)
     
-    report.listenTo(ReportPublisher)
-    chartReport.listenTo(ReportPublisher)
-
     val (secs, referSer) = init
     
     val secPicking = new SecPicking()
@@ -427,7 +416,7 @@ object TradingService {
       val tradingRule = new TradingRule()
       val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
     
-      val tradingService = new TradingService(broker, account, tradingRule, referSer, secPicking, indTemplate) {
+      val tradingService = new TradingService(broker, account, param, tradingRule, referSer, secPicking, indTemplate) {
         override 
         def at(idx: Int) {
           val triggers = scanTriggers(idx)
@@ -451,9 +440,9 @@ object TradingService {
         }
       }
     
-      ReportPublisher.publish(RoundStarted(param))
+      chartReport.roundStarted(param)
       tradingService.go(fromTime, toTime)
-      ReportPublisher.publish(RoundFinished(param))
+      chartReport.roundFinished
       System.gc
     }
     

@@ -2,6 +2,7 @@ package org.aiotrade.lib.trading.backtest
 
 import java.awt.BorderLayout
 import java.awt.Container
+import java.awt.event.ActionListener
 import java.awt.image.BufferedImage
 import java.io.File
 import java.text.SimpleDateFormat
@@ -20,11 +21,13 @@ import javafx.scene.chart.CategoryAxis
 import javafx.scene.chart.LineChart
 import javafx.scene.chart.NumberAxis
 import javafx.scene.chart.XYChart
+import javafx.scene.control.Tab
+import javafx.scene.control.TabPane
 import javafx.scene.layout.VBox
 import javax.imageio.ImageIO
 import javax.swing.JFrame
 import javax.swing.JOptionPane
-import org.aiotrade.lib.util.actors.Publisher
+import javax.swing.Timer
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
 
@@ -32,17 +35,10 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(imageFileDirStr: String) extends Reactor {
+class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900) {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private val df = new SimpleDateFormat("yy.MM.dd")
-  private val fileDf = new SimpleDateFormat("yyMMddHHmm")
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
-  
-  private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
-  private val width = 1200
-  private val height = 900
-
   private val imageFileDir = {
     if (imageFileDirStr != null) {
       try {
@@ -58,115 +54,190 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
       }
     } else null
   }
+  private var imagesToSave = List[ChartTab]()
   
-  private var frame: JFrame = _
-  private var fxPanel: JFXPanel = _
-  private var scene: Scene = _
-  var dataChart: LineChart[String, Number] = _
-  var referChart: LineChart[String, Number] = _
+  private val paramToChartTab = new mutable.HashMap[Param, ChartTab]()
+  
+  private val frame = new JFrame()
+  private val jfxPanel = new JFXPanel()
+  private val tabPane = new TabPane()
   
   initAndShowGUI
-
-  reactions += {
-    case RoundStarted(param) =>
-      startNewRound(param)
-    case RoundFinished(param) =>
-      saveImage(param)
-    case data: ReportData => 
-      updateData(data)
-    case _ =>
+  
+  private val reactor = new Reactor {
+    reactions += {
+      case RoundStarted(param) =>
+        paramToChartTab(param) = new ChartTab(param)
+      case RoundFinished =>
+        imagesToSave = paramToChartTab.values.toList
+        paramToChartTab.clear
+        imagesToSave match {
+          case Nil =>
+          case x :: xs =>
+            imagesToSave = xs
+            x.roundFinished
+        }
+      case ImageSaved =>
+        imagesToSave match {
+          case Nil =>
+          case x :: xs =>
+            imagesToSave = xs
+            x.roundFinished
+        }
+        
+    }
+  }
+  
+  private def runInFXThread(block: => Unit) {
+    Platform.runLater(new Runnable {
+        def run = block // @Note don't write as: def run {block}
+      })
   }
   
   private def initAndShowGUI {
-    frame = new JFrame()
+    // should put this code outside of runInFXThread, otherwise will cause: Toolkit not initialized
+    frame.add(jfxPanel, BorderLayout.CENTER)
     
-    fxPanel = new JFXPanel()
-    frame.add(fxPanel, BorderLayout.CENTER)
-
     runInFXThread {
-      val vbox = new VBox()
-
-      val xAxis = new CategoryAxis()
-      xAxis.setLabel("Time")
-      val yAxis = new NumberAxis()
-      
-      dataChart = new LineChart[String, Number](xAxis, yAxis)
-      dataChart.setTitle("Profit Monitoring")
-      dataChart.setCreateSymbols(false)
-      dataChart.setLegendVisible(false)
-      dataChart.setPrefHeight(0.9 * height)
-
-      val xAxisRef = new CategoryAxis()
-      xAxisRef.setLabel("Time")
-      val yAxisRef = new NumberAxis()
-      
-      referChart = new LineChart[String, Number](xAxisRef, yAxisRef)
-      referChart.setCreateSymbols(false)
-      referChart.setLegendVisible(false)
-      
-      vbox.getChildren.add(dataChart)
-      vbox.getChildren.add(referChart)
-      scene = new Scene(vbox, width, height)
+      val scene = new Scene(tabPane, width, height)
       scene.getStylesheets.add(cssUrl)
-          
-      fxPanel.setScene(scene)
+      jfxPanel.setScene(scene)
+
       frame.pack
       frame.setVisible(true)
     }
   }
   
-  private def startNewRound(param: Param) {
-    runInFXThread {
-      idToSeries.clear
-      dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
-      dataChart.setTitle("Profit Monitoring - " + param.conciseDescription)
-      referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
-    }
+  def roundStarted(param: Param) {
+    reactor ! RoundStarted(param)
   }
   
-  private def updateData(data: ReportData) {
-    // should run in FX application thread
-    runInFXThread {
-      val id = data.name + data.id
-      val series = idToSeries.getOrElse(id, {
-          val x = if (data.name.contains("Refer")) {
-            createSeries(data.name + "-" + data.id, true)
-          } else {
-            createSeries(data.name + "-" + data.id)
-          }
-          idToSeries(id) = x
-          x
-        }
-      )
-      series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
-    }
+  def roundFinished {
+    reactor ! RoundFinished
   }
   
-  private def createSeries(name: String, isRefer: Boolean = false): XYChart.Series[String, Number] = {
-    val series = new XYChart.Series[String, Number]()
-    series.setName(name)
-    (if (isRefer) referChart else dataChart).getData.add(series)
-    series
-  }
+  private case class RoundStarted(param: Param)
+  private case object RoundFinished
+  private case object ImageSaved
+  
+  private class ChartTab(param: Param) extends Reactor {
+    private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
+    private var dataChart: LineChart[String, Number] = _
+    private var referChart: LineChart[String, Number] = _
 
-  private def saveImage(param: Param) {
-    runInFXThread {
+    private val df = new SimpleDateFormat("yy.MM.dd")
+    private val fileDf = new SimpleDateFormat("yyMMddHHmm")
+
+    val tab = new Tab()
+    tab.setText(param.titleDescription)
+    private var root: VBox = _
+    
+    initAndShowGUI
+  
+    reactions += {
+      case data: ReportData => 
+        updateData(data)
+    }
+    listenTo(param)
+  
+    private def initAndShowGUI {
+      runInFXThread {
+        root = new VBox()
+
+        val xAxis = new CategoryAxis()
+        xAxis.setLabel("Time")
+        val yAxis = new NumberAxis()
+      
+        dataChart = new LineChart[String, Number](xAxis, yAxis)
+        dataChart.setTitle("Profit Monitoring - " + param.titleDescription)
+        dataChart.setCreateSymbols(false)
+        dataChart.setLegendVisible(false)
+        dataChart.setPrefHeight(0.9 * height)
+
+        val xAxisRef = new CategoryAxis()
+        xAxisRef.setLabel("Time")
+        val yAxisRef = new NumberAxis()
+      
+        referChart = new LineChart[String, Number](xAxisRef, yAxisRef)
+        referChart.setCreateSymbols(false)
+        referChart.setLegendVisible(false)
+      
+        root.getChildren.add(dataChart)
+        root.getChildren.add(referChart)
+        tab.setContent(root)
+
+        tabPane.getTabs.add(tab)
+      }
+    }
+  
+    private def resetData {
+      runInFXThread {
+        idToSeries.clear
+        dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
+        referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
+      }
+    }
+  
+    private def updateData(data: ReportData) {
+      // should run in FX application thread
+      runInFXThread {
+        val id = data.name + data.id
+        val series = idToSeries.getOrElse(id, {
+            val x = if (data.name.contains("Refer")) {
+              createSeries(data.name + "-" + data.id, true)
+            } else {
+              createSeries(data.name + "-" + data.id)
+            }
+            idToSeries(id) = x
+            x
+          }
+        )
+        series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
+      }
+    }
+  
+    private def createSeries(name: String, isRefer: Boolean = false): XYChart.Series[String, Number] = {
+      val series = new XYChart.Series[String, Number]()
+      series.setName(name)
+      (if (isRefer) referChart else dataChart).getData.add(series)
+      series
+    }
+  
+    def roundFinished {
       if (imageFileDir != null) {
+        tabPane.getSelectionModel.select(tab)
+
         val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
-        val boundbox = new BoundingBox(0, 0, frame.getWidth, frame.getHeight)
-        saveImage(frame, boundbox, file)
+        var timer: Timer = null
+        timer = new Timer(1000, new ActionListener {
+            def actionPerformed(e: java.awt.event.ActionEvent) {
+              ChartReport.saveImage(jfxPanel, file)
+              tabPane.getTabs.remove(tab)
+              reactor ! ImageSaved
+              timer.stop
+            }  
+          }
+        )
+        timer.start
       }
     }
   }
   
-  private def saveImage(container: Container, bounds: Bounds, file: File)  {
+}
+
+
+object ChartReport {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
+  private[backtest] def saveImage(container: Container, file: File)  {
     try {
       val name = file.getName
       val ext = name.lastIndexOf(".") match {
         case dot if dot >= 0 => name.substring(dot + 1)
         case _ => "jpg"
       }
-      ImageIO.write(toBufferedImage(container, bounds), ext, file)
+      val boundbox = new BoundingBox(0, 0, container.getWidth, container.getHeight)
+      ImageIO.write(toBufferedImage(container, boundbox), ext, file)
       println("=== Image saved ===")
     } catch {
       case ex =>
@@ -193,29 +264,26 @@ class ChartReport(imageFileDirStr: String) extends Reactor {
     bufferedImage
   }
   
-  private def runInFXThread(block: => Unit) {
-    Platform.runLater(new Runnable {
-        def run = block // @Note don't write as: def run {block}
-      })
-  }
-}
 
-object ChartReport {
-  
   // -- simple test
   def main(args: Array[String]) {
     val cal = Calendar.getInstance
-    val pub = new Publisher {}
     // should hold chartReport instance, otherwise it may be GCed and cannot receive message. 
-    val chartReport = new ChartReport(null)
-    chartReport.listenTo(pub)
+    val chartReport = new ChartReport(".")
+    val params = List(TestParam(1), TestParam(2))
+    params foreach chartReport.roundStarted
+    Thread.sleep(1000) // wait for chartTabs inited in FX thread
     
     val random = new Random(System.currentTimeMillis)
     cal.add(Calendar.DAY_OF_YEAR, -10)
     for (i <- 1 to 10) {
       cal.add(Calendar.DAY_OF_YEAR, i)
-      //chartReport.updateData(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))
-      pub.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))
+      params foreach {_.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))}
     }
+    
+    Thread.sleep(1000) // wait for chartTab plotted in FX thread
+    chartReport.roundFinished
   }
+  
+  private case class TestParam(v: Int) extends Param
 }
