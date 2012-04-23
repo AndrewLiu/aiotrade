@@ -85,11 +85,11 @@ case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level
 }
 
 abstract class ChinaExpenseScheme extends ExpenseScheme {
-  /** Applied on both side of sell and buy, usally 0.5% - 0.05%, 0.08%  */
+  /** Applied on both sides of sell and buy, usally 0.5% - 0.05%, 0.08%  */
   def brokerageRate: Double
   /** Applied on sell side, 0.1%  */
   def stamptaxRate: Double
-  /** Applied on both side of sell and buy, Shanhai: RMB1.0 per 1000 quantity, Shenzhen 0.0 */
+  /** Applied on both side of sell and buy, Shanghai: RMB1.0 per 1000 quantity, Shenzhen 0.0 */
   def transferFee: Double
   /** Usally RMB5.0 */
   def minimumBrokerageFee: Double
