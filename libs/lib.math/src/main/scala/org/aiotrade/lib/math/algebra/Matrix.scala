@@ -20,7 +20,7 @@ import org.aiotrade.lib.math.Precision
  *      
  */
 @cloneable
-trait Matrix extends VectorIterable {
+trait Matrix extends VectorIterable with Cloneable {
 
   /** @return a formatted String suitable for output */
   def asFormatString: String
@@ -127,14 +127,15 @@ trait Matrix extends VectorIterable {
    *
    * @return a new Matrix
    */
-  override def clone: Matrix = {
+  override 
+  def clone: Matrix = {
     // Scala's compiler seems to complain that the clone method is the protected 
     // one from Object instead of this overrided one when it's called outside the
     // protected scope. For instance: 
     //   method clone in class Object cannot be accessed in ....
     //   Access to protected method clone not permitted because
     // To bypass it, we need to implement it with following statement
-    throw new CloneNotSupportedException
+    super.clone.asInstanceOf[Matrix]
   }
   
   /**

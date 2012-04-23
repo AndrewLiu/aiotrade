@@ -61,13 +61,13 @@ class DenseVector protected (private var values: Array[Double]) extends Abstract
 
   override
   def update(index: Int, value: Double) {
-    lengthSquared = -1.0
+    lengthSquared = -1
     values(index) = value
   }
   
   override
   def assign(value: Double): Vector = {
-    this.lengthSquared = -1;
+    lengthSquared = -1
     java.util.Arrays.fill(values, value)
     this
   }
@@ -80,9 +80,9 @@ class DenseVector protected (private var values: Array[Double]) extends Abstract
     // is there some other way to know if function(0, x) = x for all x?
     function match {
       case f: Functions.PlusMult =>
-        val it = other.iterateNonZero
+        val itr = other.iterateNonZero
         var e: Element = null
-        while (it.hasNext && {e = it.next; e != null}) {
+        while (itr.hasNext && {e = itr.next; e != null}) {
           values(e.index) = function(values(e.index), e.get)
         }
       case _ =>
@@ -98,17 +98,17 @@ class DenseVector protected (private var values: Array[Double]) extends Abstract
 
   def assign(vector: DenseVector): Vector = {
     // make sure the data field has the correct length
-    if (vector.values.length != this.values.length) {
-      this.values = new Array[Double](vector.values.length)
+    if (vector.values.length != values.length) {
+      values = new Array[Double](vector.values.length)
     }
     // now copy the values
-    System.arraycopy(vector.values, 0, this.values, 0, this.values.length)
-    this;
+    System.arraycopy(vector.values, 0, values, 0, values.length)
+    this
   }
 
   override
   def getNumNondefaultElements: Int = {
-    return values.length;
+    values.length
   }
 
   override
@@ -165,9 +165,9 @@ class DenseVector protected (private var values: Array[Double]) extends Abstract
       throw new CardinalityException(size, v.size)
     }
     
-    val iter = v.iterateNonZero
-    while (iter.hasNext) {
-      val element = iter.next
+    val itr = v.iterateNonZero
+    while (itr.hasNext) {
+      val element = itr.next
       values(element.index) += element.get
     }
   }
@@ -238,9 +238,9 @@ object DenseVector {
    */
   def apply(vector: Vector) = {
     val values = new Array[Double](vector.size)
-    val it = vector.iterateNonZero
-    while (it.hasNext) {
-      val e = it.next
+    val itr = vector.iterateNonZero
+    while (itr.hasNext) {
+      val e = itr.next
       values(e.index) = e.get
     }
     new DenseVector(values)

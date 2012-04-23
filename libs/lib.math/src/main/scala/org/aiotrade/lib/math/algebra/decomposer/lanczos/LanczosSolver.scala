@@ -53,6 +53,7 @@ class LanczosSolver {
   }
 
   def solve(state: LanczosState, desiredRank: Int, isSymmetric: Boolean) {
+    val t0 = System.currentTimeMillis
     val corpus = state.corpus
     log.info("Finding %s singular vectors of matrix with %s rows, via Lanczos".format(desiredRank, corpus.numRows))
     var i = state.iterationNumber
@@ -64,7 +65,7 @@ class LanczosSolver {
     while (i < desiredRank && continue) {
       startTime(TimingSection.ITERATE)
       val nextVector = if (isSymmetric) corpus.times(currentVector) else corpus.timesSquared(currentVector)
-      log.info("%s passes through the corpus so far...".format(i))
+      log.fine("%s passes through the corpus so far...".format(i))
       if (state.scaleFactor <= 0) {
         state.scaleFactor = calculateScaleFactor(nextVector)
       }
@@ -101,7 +102,7 @@ class LanczosSolver {
     }
     startTime(TimingSection.TRIDIAG_DECOMP)
 
-    log.info("Lanczos iteration complete - now to diagonalize the tri-diagonal auxiliary matrix.");
+    log.info("Lanczos iteration complete - now to diagonalize the tri-diagonal auxiliary matrix.")
     // at this point, have tridiag all filled out, and basis is all filled out, and orthonormalized
     val decomp = new EigenvalueDecomposition(triDiag)
 
@@ -117,7 +118,7 @@ class LanczosSolver {
       val size = math.min(ejCol.size, state.getBasisSize)
       var j = 0
       while (j < size) {
-        val d = ejCol.get(j);
+        val d = ejCol.get(j)
         val rowJ = state.getBasisVector(j).getOrElse(null)
         if(realEigen == null) {
           realEigen = rowJ.like
@@ -131,11 +132,11 @@ class LanczosSolver {
       if(!isSymmetric) {
         e = math.sqrt(e)
       }
-      log.info("Eigenvector %s found with eigenvalue %s".format(row, e))
+      log.fine("Eigenvector %s found with eigenvalue %s".format(row, e))
       state.setSingularValue(row, e)
       row += 1
     }
-    log.info("LanczosSolver finished.")
+    log.info("LanczosSolver finished in %ss.".format((System.currentTimeMillis - t0) / 1000))
     endTime(TimingSection.FINAL_EIGEN_CREATE)
   }
 

@@ -8,8 +8,7 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
 
   private var _subPositions: ArrayList[Position] = null
   private var _currentPrice = _price
-  private var _highestPrice = _price
-  private var _lowestPrice = _price
+  private var _maxProfitRatio = 0.0
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
   
@@ -45,14 +44,11 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
   def asset = _currentPrice * quantity
   
   def currentPrice = _currentPrice
-  def highestPrice = _highestPrice
-  def lowestPrice = _lowestPrice
   
   def update(currentPrice: Double) {
     if (!currentPrice.isNaN) {
       _currentPrice = currentPrice
-      _highestPrice = math.max(_highestPrice, currentPrice)
-      _lowestPrice = math.min(_lowestPrice, currentPrice)
+      _maxProfitRatio = math.max(_maxProfitRatio, profitRatio)
     }
   }
   
@@ -72,10 +68,14 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
     }
   }
   
+  def isLong: Boolean = _quantity > 0
+  def isShort: Boolean = _quantity < 0
+  
   /**
    * @todo, consider expense
    */
-  def profit = (_currentPrice - _price) / _price
+  def profitRatio = if (_quantity == 0) 0 else if (isLong) (_currentPrice - _price) / _price else (_price - _currentPrice) / _price
+  def maxProfitRatio = _maxProfitRatio
 }
 
 object Position {

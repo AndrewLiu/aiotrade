@@ -23,7 +23,7 @@ import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.SecPicking
 import org.aiotrade.lib.trading.SecPickingEvent
 import org.aiotrade.lib.trading.ShanghaiExpenseScheme
-import org.aiotrade.lib.trading.TradeRule
+import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
@@ -34,7 +34,7 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
+class TradingService(broker: Broker, account: Account, param: Param, tradingRule: TradingRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   private case class Go(fromTime: Long, toTime: Long)
@@ -137,8 +137,8 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       updatePositionsPrice
       // @todo process unfilled orders
 
-      TradingService.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
-      TradingService.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
+      param.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
@@ -181,10 +181,10 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
   
   protected def checkStopCondition {
     for ((sec, position) <- account.positions) {
-      if (tradeRule.cutLossRule(position)) {
+      if (tradingRule.cutLossRule(position)) {
         triggers += Trigger(sec, position, closeTime, Side.CutLoss)
       }
-      if (tradeRule.takeProfitRule(position)) {
+      if (tradingRule.takeProfitRule(position)) {
         triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
       }
     }
@@ -251,7 +251,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
     while ({amount = calcTotalFund(buyingOrders); amount > account.balance}) {
       orders match {
         case order :: tail =>
-          order.quantity -= tradeRule.quantityPerLot
+          order.quantity -= tradingRule.quantityPerLot
           orders = tail
         case Nil => 
           orders = buyingOrders
@@ -336,17 +336,17 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
       side match {
         case OrderSide.Buy =>
           if (_price.isNaN) {
-            _price = tradeRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+            _price = tradingRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity = tradeRule.buyQuantityRule(ser.volume(idx), _price, _fund)
+            _quantity = tradingRule.buyQuantityRule(ser.volume(idx), _price, _fund)
           }
         case OrderSide.Sell =>
           if (_price.isNaN) {
-            _price = tradeRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+            _price = tradingRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
           }
           if (_quantity.isNaN) {
-            _quantity = tradeRule.sellQuantityRule(ser.volume(idx), _price, _fund)
+            _quantity = tradingRule.sellQuantityRule(ser.volume(idx), _price, _fund)
           }
         case _ =>
       }
@@ -363,7 +363,7 @@ class TradingService(broker: Broker, account: Account, tradeRule: TradeRule, ref
 
 }
 
-object TradingService extends Publisher {
+object TradingService {
   
   def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
@@ -372,8 +372,9 @@ object TradingService extends Publisher {
   }
   
   private def init = {
-    val CSI300Category = "008011"
-    val secs = securities.getSecsOfSector(CSI300Category)
+    val category = "008011"
+    val CSI300Code = "399300.SZ"
+    val secs = securities.getSecsOfSector(category, CSI300Code)
     val referSec = Exchange.secOf("000001.SS").get
     val referSer = securities.loadSers(secs, referSec, TFreq.DAILY)
     val goodSecs = secs filter {_.serOf(TFreq.DAILY).get.size > 0}
@@ -395,20 +396,9 @@ object TradingService extends Publisher {
     val fromTime = df.parse("2011.04.03").getTime
     val toTime = df.parse("2012.04.03").getTime
     
-    val report = new Publisher {
-      reactions += {
-        case RoundStarted(param) =>
-          println("== " + param + " ==")
-        case ReportData(name, id, time, value) => 
-          println(df.format(new Date(time)) + ": " + value)
-      }
-    }
     val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
     val chartReport = new ChartReport(imageFileDir)
     
-    report.listenTo(TradingService)
-    chartReport.listenTo(TradingService)
-
     val (secs, referSer) = init
     
     val secPicking = new SecPicking()
@@ -423,10 +413,10 @@ object TradingService extends Publisher {
       val broker = new PaperBroker("Backtest")
       val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008))
     
-      val tradeRule = new TradeRule()
+      val tradingRule = new TradingRule()
       val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
     
-      val tradingService = new TradingService(broker, account, tradeRule, referSer, secPicking, indTemplate) {
+      val tradingService = new TradingService(broker, account, param, tradingRule, referSer, secPicking, indTemplate) {
         override 
         def at(idx: Int) {
           val triggers = scanTriggers(idx)
@@ -450,9 +440,9 @@ object TradingService extends Publisher {
         }
       }
     
-      TradingService.publish(RoundStarted(param))
+      chartReport.roundStarted(param)
       tradingService.go(fromTime, toTime)
-      TradingService.publish(RoundFinished(param))
+      chartReport.roundFinished
       System.gc
     }
     

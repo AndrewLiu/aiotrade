@@ -51,7 +51,9 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
 
   def this()(implicit m: Manifest[A]) = this(16)
 
-  def clear() { reduceToSize(0) }
+  def clear() {
+    reduceToSize(0)
+  }
 
   override 
   def sizeHint(len: Int) {
@@ -67,11 +69,21 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @param elem  the element to append.
    */
-  def +=(elem: A): this.type = {
+  override 
+  def +(elem: A): this.type =  {
     ensureSize(size0 + 1)
     array(size0) = elem
     size0 += 1
     this
+  }
+
+  /** Appends a single element to this buffer and returns
+   *  the identity of the buffer. It takes constant time.
+   *
+   *  @param elem  the element to append.
+   */
+  def +=(elem: A): this.type = {
+    this.+(elem)
   }
 
   /** Appends a number of elements provided by an iterable object
@@ -79,10 +91,8 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  buffer is returned.
    *
    *  @param xs  the itertable object.
-   *  @return    the updated buffer.
    */
-  override 
-  def ++=(xs: TraversableOnce[A]): this.type = {
+  def ++(xs: TraversableOnce[A]): this.type =  {
     val len = xs match {
       case xs: IndexedSeq[A] => xs.length
       case _ => xs.size
@@ -103,6 +113,32 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     }
   }
   
+  /** Appends a number of elements provided by an iterable object
+   *  via its <code>iterator</code> method. The identity of the
+   *  buffer is returned.
+   *
+   *  @param xs  the itertable object.
+   *  @return    the updated buffer.
+   */
+  override 
+  def ++=(xs: TraversableOnce[A]): this.type = {
+    this.++(xs)
+  }
+  
+  /** Prepends a single element to this buffer and return
+   *  the identity of the buffer. It takes time linear in 
+   *  the buffer size.
+   *
+   *  @param elem  the element to append.
+   */
+  def +:(elem: A): this.type = {
+    ensureSize(size0 + 1)
+    copy(0, 1, size0)
+    array(0) = elem
+    size0 += 1
+    this
+  }
+   
   /** Prepends a single element to this buffer and return
    *  the identity of the buffer. It takes time linear in 
    *  the buffer size.
@@ -111,13 +147,20 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @return      the updated buffer. 
    */
   def +=:(elem: A): this.type = {
-    ensureSize(size0 + 1)
-    copy(0, 1, size0)
-    array(0) = elem
-    size0 += 1
+    this.+:(elem)
+  }
+  
+  /** Prepends a number of elements provided by an iterable object
+   *  via its <code>iterator</code> method. The identity of the
+   *  buffer is returned.
+   *
+   *  @param xs  the iterable object.
+   */
+  def ++:(xs: TraversableOnce[A]): this.type = {
+    insertAll(0, xs.toTraversable)
     this
   }
-   
+
   /** Prepends a number of elements provided by an iterable object
    *  via its <code>iterator</code> method. The identity of the
    *  buffer is returned.
@@ -126,7 +169,9 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @return    the updated buffer.
    */
   override 
-  def ++=:(xs: TraversableOnce[A]): this.type = { insertAll(0, xs.toTraversable); this }
+  def ++=:(xs: TraversableOnce[A]): this.type = {
+    this.++:(xs)
+  }
 
   /** Inserts new elements at the index <code>n</code>. Opposed to method
    *  <code>update</code>, this method will not replace an element with a
@@ -161,7 +206,8 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @param count   the number of elemenets to delete
    *  @throws Predef.IndexOutOfBoundsException if <code>n</code> is out of bounds.
    */
-  override def remove(n: Int, count: Int) {
+  override 
+  def remove(n: Int, count: Int) {
     require(count >= 0, "removing negative number of elements")
     if (n < 0 || n > size0 - count) throw new IndexOutOfBoundsException(n.toString)
     copy(n + count, n, size0 - (n + count))

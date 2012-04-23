@@ -171,15 +171,15 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
   }
 
   def normalize(power: Double): Vector = {
-    return divide(norm(power))
+    divide(norm(power))
   }
   
   def logNormalize: Vector = {
-    return logNormalize(2.0, math.sqrt(dotSelf))
+    logNormalize(2.0, math.sqrt(dotSelf))
   }
   
   def logNormalize(power: Double): Vector = {
-    return logNormalize(power, norm(power))
+    logNormalize(power, norm(power))
   }
   
   def logNormalize(power: Double, normLength: Double): Vector = {   
@@ -256,16 +256,15 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
       return lengthSquared + v.getLengthSquared - 2 * this.dot(v)
     }
     var randomlyAccessed: Vector = null
-    var itr: Iterator[Element] = null
     var d = 0.0
-    if (lengthSquared >= 0.0) {
-      itr = v.iterateNonZero
+    val itr = if (lengthSquared >= 0.0) {
       randomlyAccessed = this
       d += lengthSquared
+      v.iterateNonZero
     } else { // TODO: could be further optimized, figure out which one is smaller, etc
-      itr = iterateNonZero
       randomlyAccessed = v
       d += v.getLengthSquared
+      iterateNonZero
     }
     while (itr.hasNext) {
       val e = itr.next
@@ -510,7 +509,7 @@ abstract class AbstractVector protected (private var _size: Int) extends Vector 
     }
 
     /* special case: we only need to iterate over the non-zero elements of the vector to add */
-    if (Functions.PLUS == function) {
+    if (function == Functions.PLUS) {
       val nonZeroElements = other.iterateNonZero
       while (nonZeroElements.hasNext) {
         val e = nonZeroElements.next

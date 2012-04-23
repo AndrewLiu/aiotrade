@@ -9,13 +9,10 @@ class SimpleEigenVerifier extends SingularVectorVerifier {
     val resultantVector = corpus.timesSquared(vector)
     val newNorm = resultantVector.norm(2)
     val oldNorm = vector.norm(2)
-    val (eigenValue, cosAngle) =
-      if (newNorm > 0 && oldNorm > 0) {
-        (newNorm / oldNorm, resultantVector.dot(vector) / newNorm * oldNorm)
-      } else {
-        (1.0, 0.0)
-      }
-    new EigenStatus(eigenValue, cosAngle, false)
+    if (newNorm > 0 && oldNorm > 0) {
+      new EigenStatus(newNorm / oldNorm, resultantVector.dot(vector) / newNorm * oldNorm, false)
+    } else {
+      new EigenStatus(1.0, 0.0, false)
+    }
   }
-
 }

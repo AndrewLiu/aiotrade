@@ -5,7 +5,7 @@ package org.aiotrade.lib.trading
  * @author Caoyuan Deng
  */
 
-class TradeRule {
+class TradingRule {
   val quantityPerLot = 100
   val tradableProportionOfVolume = 0.1
 
@@ -35,13 +35,10 @@ class TradeRule {
   }
   
   def cutLossRule(position: Position): Boolean = {
-    val profit = (position.currentPrice - position.price) / position.price
-    profit < -0.05
+    position.profitRatio < -0.05
   }
   
   def takeProfitRule(position: Position): Boolean = {
-    val profit = (position.currentPrice - position.price) / position.price
-    val maxProfit = (position.highestPrice - position.price) / position.price
-    profit < maxProfit * 0.4
+    position.profitRatio < position.maxProfitRatio * 0.6
   }
 }
