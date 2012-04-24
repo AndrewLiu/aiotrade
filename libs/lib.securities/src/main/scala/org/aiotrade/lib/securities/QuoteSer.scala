@@ -61,12 +61,14 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   val prev5Close = TVar[Double]("P5C", Plot.None)
   val execCount = TVar[Double]("E", Plot.None)
   val turnoverRate = TVar[Double]("T", Plot.None)
+  val average = TVar[Double]("R", Plot.None)
     
   // unadjusted values
-  val open_ori  = TVar[Double]("O")
-  val high_ori  = TVar[Double]("H")
-  val low_ori   = TVar[Double]("L")
-  val close_ori = TVar[Double]("C")
+  val open_ori    = TVar[Double]("O")
+  val high_ori    = TVar[Double]("H")
+  val low_ori     = TVar[Double]("L")
+  val close_ori   = TVar[Double]("C")
+  val average_ori = TVar[Double]("R")
 
   val isClosed = TVar[Boolean]()
   
@@ -87,11 +89,13 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
         prevClose(time) = quote.prevClose
         execCount(time) = quote.execCount
         turnoverRate(time) = quote.volume / freeFloat(time)
+        average(time) = quote.average
 
-        open_ori(time)  = quote.open
-        high_ori(time)  = quote.high
-        low_ori(time)   = quote.low
-        close_ori(time) = quote.close
+        open_ori(time)    = quote.open
+        high_ori(time)    = quote.high
+        low_ori(time)     = quote.low
+        close_ori(time)   = quote.close
+        average_ori(time) = quote.average
 
         isClosed(time) = quote.closed_?
 
@@ -179,6 +183,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
       var l = low_ori(i)
       var o = open_ori(i)
       var c = close_ori(i)
+      var r = average_ori(i)
 
       if (b) {
         val divItr = divs.iterator
@@ -189,14 +194,16 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
             l = div.adjust(l)
             o = div.adjust(o)
             c = div.adjust(c)
+            r = div.adjust(r)
           }
         }
       }
       
-      high (i) = h
-      low  (i) = l
-      open (i) = o
-      close(i) = c
+      high   (i) = h
+      low    (i) = l
+      open   (i) = o
+      close  (i) = c
+      average(i) = r
     }
 
     isAdjusted = b

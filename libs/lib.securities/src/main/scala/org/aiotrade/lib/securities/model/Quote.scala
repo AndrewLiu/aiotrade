@@ -106,6 +106,9 @@ class Quote extends BelongsToSec with TVal with Flag {
   // --- no db fields:
   var isTransient: Boolean = true
   
+  /** average price */
+  def average: Double = if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
+  
   def copyFrom(another: Quote) {
     System.arraycopy(another.data, 0, data, 0, data.length)
   }
