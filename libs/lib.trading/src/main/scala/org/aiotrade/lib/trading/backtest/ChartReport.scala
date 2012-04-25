@@ -147,6 +147,9 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
         val xAxis = new CategoryAxis()
         xAxis.setLabel("Time")
         val yAxis = new NumberAxis()
+        yAxis.setAutoRanging(true)
+        yAxis.setUpperBound(240)
+        yAxis.setLowerBound(100)
       
         dataChart = new LineChart[String, Number](xAxis, yAxis)
         dataChart.setTitle("Profit Monitoring - " + param.titleDescription)
@@ -209,7 +212,7 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
 
         val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
         var timer: Timer = null
-        timer = new Timer(1000, new ActionListener {
+        timer = new Timer(1500, new ActionListener {
             def actionPerformed(e: java.awt.event.ActionEvent) {
               ChartReport.saveImage(jfxPanel, file)
               tabPane.getTabs.remove(tab)
