@@ -35,7 +35,7 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900) {
+class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperBound: Int = 0, lowerBound: Int = 1000, width: Int = 1200, height: Int = 900) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
@@ -147,9 +147,9 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
         val xAxis = new CategoryAxis()
         xAxis.setLabel("Time")
         val yAxis = new NumberAxis()
-        yAxis.setAutoRanging(true)
-        yAxis.setUpperBound(240)
-        yAxis.setLowerBound(100)
+        yAxis.setAutoRanging(isAutoRanging)
+        yAxis.setUpperBound(upperBound)
+        yAxis.setLowerBound(lowerBound)
       
         dataChart = new LineChart[String, Number](xAxis, yAxis)
         dataChart.setTitle("Profit Monitoring - " + param.titleDescription)
