@@ -54,9 +54,8 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
       }
     } else null
   }
-  private var imagesToSave = List[ChartTab]()
   
-  private val paramToChartTab = new mutable.HashMap[Param, ChartTab]()
+  private var chartTabs = List[ChartTab]()
   
   private val frame = new JFrame()
   private val jfxPanel = new JFXPanel()
@@ -67,21 +66,19 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
   private val reactor = new Reactor {
     reactions += {
       case RoundStarted(param) =>
-        paramToChartTab(param) = new ChartTab(param)
+        chartTabs ::= new ChartTab(param)
       case RoundFinished =>
-        imagesToSave = paramToChartTab.values.toList
-        paramToChartTab.clear
-        imagesToSave match {
+        chartTabs.reverse match {
           case Nil =>
           case x :: xs =>
-            imagesToSave = xs
+            chartTabs = xs
             x.roundFinished
         }
       case ImageSaved =>
-        imagesToSave match {
+        chartTabs match {
           case Nil =>
           case x :: xs =>
-            imagesToSave = xs
+            chartTabs = xs
             x.roundFinished
         }
         
@@ -108,8 +105,11 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
     }
   }
   
-  def roundStarted(param: Param) {
-    reactor ! RoundStarted(param)
+  /**
+   * @param for each param in params, will create a new tab in main frame.
+   */
+  def roundStarted(params: List[Param]) {
+    params foreach {reactor ! RoundStarted(_)}
   }
   
   def roundFinished {
@@ -274,7 +274,7 @@ object ChartReport {
     // should hold chartReport instance, otherwise it may be GCed and cannot receive message. 
     val chartReport = new ChartReport(".")
     val params = List(TestParam(1), TestParam(2))
-    params foreach chartReport.roundStarted
+    chartReport.roundStarted(params)
     Thread.sleep(1000) // wait for chartTabs inited in FX thread
     
     val random = new Random(System.currentTimeMillis)

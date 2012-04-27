@@ -440,7 +440,7 @@ object TradingService {
         }
       }
     
-      chartReport.roundStarted(param)
+      chartReport.roundStarted(List(param))
       tradingService.go(fromTime, toTime)
       chartReport.roundFinished
       System.gc
