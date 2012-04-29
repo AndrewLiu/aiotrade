@@ -332,31 +332,35 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
 
     def toOrder: Option[Order] = {
       val time = timestamps(referIndex)
-      val idx = ser.indexOfOccurredTime(time)
-      side match {
-        case OrderSide.Buy =>
-          if (_price.isNaN) {
-            _price = tradingRule.buyPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
+      ser.valueOf(time) match {
+        case Some(quote) =>
+          side match {
+            case OrderSide.Buy =>
+              if (_price.isNaN) {
+                _price = tradingRule.buyPriceRule(quote)
+              }
+              if (_quantity.isNaN) {
+                _quantity = tradingRule.buyQuantityRule(quote, _price, _fund)
+              }
+            case OrderSide.Sell =>
+              if (_price.isNaN) {
+                _price = tradingRule.sellPriceRule(quote)
+              }
+              if (_quantity.isNaN) {
+                _quantity = tradingRule.sellQuantityRule(quote, _price, _fund)
+              }
+            case _ =>
           }
-          if (_quantity.isNaN) {
-            _quantity = tradingRule.buyQuantityRule(ser.volume(idx), _price, _fund)
-          }
-        case OrderSide.Sell =>
-          if (_price.isNaN) {
-            _price = tradingRule.sellPriceRule(ser.open(idx), ser.high(idx), ser.low(idx), ser.close(idx))
-          }
-          if (_quantity.isNaN) {
-            _quantity = tradingRule.sellQuantityRule(ser.volume(idx), _price, _fund)
-          }
-        case _ =>
-      }
 
-      if (_quantity > 0) {
-        val order = new Order(account, sec, _quantity, _price, side)
-        order.time = time
-        Some(order)
-      } else {
-        None
+          if (_quantity > 0) {
+            val order = new Order(account, sec, _quantity, _price, side)
+            order.time = time
+            Some(order)
+          } else {
+            None
+          }
+          
+        case None => None
       }
     }
   }

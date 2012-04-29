@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Random
+import java.util.concurrent.CountDownLatch
 import java.util.logging.Level
 import java.util.logging.Logger
 import javafx.application.Platform
@@ -35,7 +36,10 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperBound: Int = 0, lowerBound: Int = 1000, width: Int = 1200, height: Int = 900) {
+class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, 
+                  upperBound: Int = 0, lowerBound: Int = 1000, 
+                  width: Int = 1200, height: Int = 900
+) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
@@ -55,6 +59,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
     } else null
   }
   
+  private var imageSavingLock: CountDownLatch = _
   private var chartTabs = List[ChartTab]()
   
   private val frame = new JFrame()
@@ -62,28 +67,6 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
   private val tabPane = new TabPane()
   
   initAndShowGUI
-  
-  private val reactor = new Reactor {
-    reactions += {
-      case RoundStarted(param) =>
-        chartTabs ::= new ChartTab(param)
-      case RoundFinished =>
-        chartTabs.reverse match {
-          case Nil =>
-          case x :: xs =>
-            chartTabs = xs
-            x.roundFinished
-        }
-      case ImageSaved =>
-        chartTabs match {
-          case Nil =>
-          case x :: xs =>
-            chartTabs = xs
-            x.roundFinished
-        }
-        
-    }
-  }
   
   private def runInFXThread(block: => Unit) {
     Platform.runLater(new Runnable {
@@ -106,19 +89,34 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
   }
   
   /**
-   * @param for each param in params, will create a new tab in main frame.
+   * @param for each param in params, will create a new tabbed pane in main frame.
    */
   def roundStarted(params: List[Param]) {
-    params foreach {reactor ! RoundStarted(_)}
+    if (imageSavingLock != null) {
+      try {
+        imageSavingLock.await
+      } catch {
+        case e: InterruptedException => e.printStackTrace
+      }
+    }
+    chartTabs = params map (new ChartTab(_))
+    Thread.sleep(1000) // wait for chartTab inited in FX thread
   }
   
   def roundFinished {
-    reactor ! RoundFinished
+    imageSavingLock = new CountDownLatch(chartTabs.length)
+    Thread.sleep(2000) // wait for chart painted in FX thread
+    trySaveNextImage
   }
   
-  private case class RoundStarted(param: Param)
-  private case object RoundFinished
-  private case object ImageSaved
+  private def trySaveNextImage {
+    chartTabs match {
+      case Nil =>
+      case x :: xs =>
+        chartTabs = xs
+        x.roundFinished
+    }
+  }
   
   private class ChartTab(param: Param) extends Reactor {
     private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
@@ -216,9 +214,10 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, upperB
             def actionPerformed(e: java.awt.event.ActionEvent) {
               ChartReport.saveImage(jfxPanel, file)
               tabPane.getTabs.remove(tab)
-              reactor ! ImageSaved
+              imageSavingLock.countDown
+              trySaveNextImage
               timer.stop
-            }  
+            }
           }
         )
         timer.start
@@ -275,7 +274,6 @@ object ChartReport {
     val chartReport = new ChartReport(".")
     val params = List(TestParam(1), TestParam(2))
     chartReport.roundStarted(params)
-    Thread.sleep(1000) // wait for chartTabs inited in FX thread
     
     val random = new Random(System.currentTimeMillis)
     cal.add(Calendar.DAY_OF_YEAR, -10)
@@ -284,7 +282,6 @@ object ChartReport {
       params foreach {_.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))}
     }
     
-    Thread.sleep(1000) // wait for chartTab plotted in FX thread
     chartReport.roundFinished
   }
   

@@ -5,25 +5,27 @@ package org.aiotrade.lib.trading
  * @author Caoyuan Deng
  */
 
+import org.aiotrade.lib.securities.model.Quote
+
 class TradingRule {
   val quantityPerLot = 100
   val tradableProportionOfVolume = 0.1
 
-  def buyPriceRule(o: Double, h: Double, l: Double, c: Double): Double = {
-    o
+  def buyPriceRule(quote: Quote): Double = {
+    quote.open
   }
 
-  def sellPriceRule(o: Double, h: Double, l: Double, c: Double): Double = {
-    o
+  def sellPriceRule(quote: Quote): Double = {
+    quote.open
   }
   
-  def buyQuantityRule(volume: Double, price: Double, fund: Double): Int = {
-    val quantity = maxQuantity(volume, price, fund)
+  def buyQuantityRule(quote: Quote, price: Double, fund: Double): Int = {
+    val quantity = maxQuantity(quote.volume, price, fund)
     roundQuantity(quantity)
   }
   
-  def sellQuantityRule(volume: Double, price: Double, quantity: Double): Int = {
-    math.min(quantity, volume * quantityPerLot * tradableProportionOfVolume).toInt
+  def sellQuantityRule(quote: Quote, price: Double, quantity: Double): Int = {
+    math.min(quantity, quote.volume * quantityPerLot * tradableProportionOfVolume).toInt
   }
 
   protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
