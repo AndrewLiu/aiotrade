@@ -59,7 +59,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
     } else null
   }
   
-  private var imageSavingLock: CountDownLatch = _
+  private var imageSavingLatch: CountDownLatch = _
   private var chartTabs = List[ChartTab]()
   
   private val frame = new JFrame()
@@ -92,9 +92,9 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
    * @param for each param in params, will create a new tabbed pane in main frame.
    */
   def roundStarted(params: List[Param]) {
-    if (imageSavingLock != null) {
+    if (imageSavingLatch != null) {
       try {
-        imageSavingLock.await
+        imageSavingLatch.await
       } catch {
         case e: InterruptedException => e.printStackTrace
       }
@@ -104,7 +104,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
   }
   
   def roundFinished {
-    imageSavingLock = new CountDownLatch(chartTabs.length)
+    imageSavingLatch = new CountDownLatch(chartTabs.length)
     Thread.sleep(2000) // wait for chart painted in FX thread
     trySaveNextImage
   }
@@ -214,7 +214,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
             def actionPerformed(e: java.awt.event.ActionEvent) {
               ChartReport.saveImage(jfxPanel, file)
               tabPane.getTabs.remove(tab)
-              imageSavingLock.countDown
+              imageSavingLatch.countDown
               trySaveNextImage
               timer.stop
             }

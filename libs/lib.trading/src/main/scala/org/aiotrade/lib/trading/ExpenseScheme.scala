@@ -111,8 +111,8 @@ abstract class ChinaExpenseScheme extends ExpenseScheme {
 case class ShanghaiExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 1.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
 case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 0.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
 
-case class ChinaFinanceFutureScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.00005) extends ExpenseScheme {
-  val pricePerPoint = 300.0
+case class ChinaFinanceFutureScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.000035) extends ExpenseScheme {
+  val contractMultiplier = 300.0 // price per index point
   
   def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice
