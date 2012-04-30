@@ -137,7 +137,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
       updatePositionsPrice
       // @todo process unfilled orders
 
-      param.publish(ReportData(account.description, 0, closeTime, account.asset / account.initialAsset * 100))
+      param.publish(ReportData(account.description, 0, closeTime, account.equity / account.equity * 100))
       param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 

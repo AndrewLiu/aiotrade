@@ -41,7 +41,7 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
     _price = price
   }
   
-  def asset = _currentPrice * quantity
+  def equity = _currentPrice * quantity
   
   def currentPrice = _currentPrice
   

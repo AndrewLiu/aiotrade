@@ -18,9 +18,9 @@ class Account(private var _description: String,
   private val _transactions = new ArrayList[Transaction]()
   private val _secToPositions = new mutable.HashMap[Sec, Position]()
   
-  val initialAsset = _balance
-  def asset = {
-    _balance + _secToPositions.foldRight(0.0){(x, s) => s + x._2.asset}
+  val initialEquity = _balance
+  def equity = {
+    _balance + _secToPositions.foldRight(0.0){(x, s) => s + x._2.equity}
   }
 
   def balance: Double = _balance

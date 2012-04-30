@@ -1,12 +1,11 @@
 package org.aiotrade.lib.trading
 
+import org.aiotrade.lib.securities.model.Quote
+
 /**
  * 
  * @author Caoyuan Deng
  */
-
-import org.aiotrade.lib.securities.model.Quote
-
 class TradingRule {
   val quantityPerLot = 100
   val tradableProportionOfVolume = 0.1
