@@ -16,7 +16,7 @@ case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
  */
 class SecPicking extends Publisher {
   private var prevTime = 0L
-  private val secValidTimes = new ArrayList[ValidTime[Sec]]
+  private val validTimes = new ArrayList[ValidTime[Sec]]
   val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
   
   private def addToMap(secValidTime: ValidTime[Sec]) {
@@ -30,14 +30,16 @@ class SecPicking extends Publisher {
     }
   }
   
+  def allSecs = secToValidTimes.keys
+  
   def go(time: Long) {
     var i = 0
-    while (i < secValidTimes.length) {
-      val secValidTime = secValidTimes(i)
-      if (secValidTime.isValid(time) && !secValidTime.isValid(prevTime)) {
-        publish(SecPickingEvent(secValidTime, Side.EnterPicking))
-      } else if (!secValidTime.isValid(time) && secValidTime.isValid(prevTime)) {
-        publish(SecPickingEvent(secValidTime, Side.ExitPicking))
+    while (i < validTimes.length) {
+      val validTime = validTimes(i)
+      if (validTime.isValid(time) && !validTime.isValid(prevTime)) {
+        publish(SecPickingEvent(validTime, Side.EnterPicking))
+      } else if (!validTime.isValid(time) && validTime.isValid(prevTime)) {
+        publish(SecPickingEvent(validTime, Side.ExitPicking))
       }
       i += 1
     }
@@ -45,7 +47,7 @@ class SecPicking extends Publisher {
   }
   
   def +(secValidTime: ValidTime[Sec]) {
-    secValidTimes += secValidTime
+    validTimes += secValidTime
     addToMap(secValidTime)
   }
   
@@ -54,7 +56,7 @@ class SecPicking extends Publisher {
   }
   
   def -(secValidTime: ValidTime[Sec]) {
-    secValidTimes -= secValidTime
+    validTimes -= secValidTime
     removeFromMap(secValidTime)
   }
   
@@ -83,7 +85,7 @@ class SecPicking extends Publisher {
   }
 
   def ++(secValidTimes: Seq[ValidTime[Sec]]) {
-    this.secValidTimes ++= secValidTimes
+    this.validTimes ++= secValidTimes
     secValidTimes foreach addToMap
   }
   
@@ -93,7 +95,7 @@ class SecPicking extends Publisher {
   }
   
   def --(secValidTimes: Seq[ValidTime[Sec]]) {
-    this.secValidTimes --= secValidTimes
+    this.validTimes --= secValidTimes
     secValidTimes foreach removeFromMap
   }
   
@@ -136,15 +138,15 @@ class SecPicking extends Publisher {
     private var index = 0
       
     def hasNext = {
-      while (index < secValidTimes.length && secValidTimes(index).isValid(time)) {
+      while (index < validTimes.length && validTimes(index).isValid(time)) {
         index += 1
       }
-      index < secValidTimes.length
+      index < validTimes.length
     }
       
     def next = {
       if (hasNext) {
-        val sec = secValidTimes(index).ref
+        val sec = validTimes(index).ref
         index += 1
         sec
       } else {

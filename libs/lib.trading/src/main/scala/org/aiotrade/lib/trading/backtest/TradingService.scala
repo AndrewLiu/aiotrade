@@ -34,7 +34,9 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, account: Account, param: Param, tradingRule: TradingRule, referSer: QuoteSer, secPicking: SecPicking, signalIndTemplates: SignalIndicator*) extends Publisher {
+class TradingService(broker: Broker, account: Account, param: Param, tradingRule: TradingRule, referSer: QuoteSer, 
+                     secPicking: SecPicking, signalIndTemplates: SignalIndicator*
+) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   private case class Go(fromTime: Long, toTime: Long)
@@ -48,9 +50,11 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   protected var buyingOrders = List[Order]()
   protected var sellingOrders = List[Order]()
 
+  /** current closed refer idx */
   protected var closeReferIdx = 0
-  protected var referPrice0 = Double.NaN
-  
+  /** current closed refer time */
+  protected def closeTime = timestamps(closeReferIdx)
+
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
       val position = getPosition(secValidTime.ref)
@@ -71,7 +75,6 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
       }
       
     case Go(fromTime, toTime) =>
-      log.info("Got Go")
       doGo(fromTime, toTime)
 
     case _ =>
@@ -79,27 +82,30 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
 
   private def initSignalIndicators {
     val t0 = System.currentTimeMillis
+    
     if (signalIndTemplates.nonEmpty) {
       listenTo(Signal)
     
-      for ((sec, _) <- secPicking.secToValidTimes;
-           ser <- sec.serOf(freq);
-           signalIndTemplate <- signalIndTemplates;
-           indClass = signalIndTemplate.getClass;
-           factor = signalIndTemplate.factors
-      ) {
+      for {
+        indTemplate <- signalIndTemplates
+        indClass = indTemplate.getClass
+        indFactor = indTemplate.factors
+        
+        sec <- secPicking.allSecs
+        ser <- sec.serOf(freq)
+      } {
+        // for each sec, need a new instance of indicator
         val ind = indClass.newInstance.asInstanceOf[SignalIndicator]
         // @Note should add to signalIndicators before compute, otherwise, the published signal may be dropped in reactions 
         signalIndicators += ind 
-        ind.factors = factor
+        ind.factors = indFactor
         ind.set(ser)
         ind.computeFrom(0)
       }
     }
+    
     log.info("Inited singals in %ss.".format((System.currentTimeMillis - t0) / 1000))
   }
-  
-  protected def closeTime = timestamps(closeReferIdx)
   
   protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
   
@@ -129,7 +135,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   private def doGo(fromTime: Long, toTime: Long) {
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-    referPrice0 = referSer.open(fromIdx)
+    val initialReferPrice = referSer.open(fromIdx)
     var i = fromIdx
     while (i <= toIdx) {
       closeReferIdx = i
@@ -137,8 +143,8 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
       updatePositionsPrice
       // @todo process unfilled orders
 
-      param.publish(ReportData(account.description, 0, closeTime, account.equity / account.equity * 100))
-      param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / referPrice0 * 100 - 100))
+      param.publish(ReportData(account.description, 0, closeTime, account.equity / account.initialEquity * 100))
+      param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / initialReferPrice * 100 - 100))
 
       // -- todays ordered processed, no begin to check new conditions and 
       // -- prepare new orders according today's close status.
