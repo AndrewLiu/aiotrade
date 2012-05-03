@@ -16,11 +16,11 @@ class Account(private var _description: String,
   val id = UUID.randomUUID.getMostSignificantBits
   
   private val _transactions = new ArrayList[Transaction]()
-  private val _secToPositions = new mutable.HashMap[Sec, Position]()
+  private val _secToPosition = new mutable.HashMap[Sec, Position]()
   
   val initialEquity = _balance
   def equity = {
-    _balance + _secToPositions.foldRight(0.0){(x, s) => s + x._2.equity}
+    _balance + _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
   }
 
   def balance: Double = _balance
@@ -38,7 +38,7 @@ class Account(private var _description: String,
     _expenseScheme = expenseScheme
   }
 
-  def positions = _secToPositions
+  def positions = _secToPosition
   def transactions = _transactions.toArray
   
   def processFilledOrder(time: Long, order: Order) {
@@ -59,16 +59,16 @@ class Account(private var _description: String,
     }
     val averagePrice = transaction.amount / order.filledQuantity
     
-    _secToPositions.get(order.sec) match {
+    _secToPosition.get(order.sec) match {
       case None => 
         val position = Position(time, order.sec, quantity, averagePrice)
-        _secToPositions(order.sec) = position
+        _secToPosition(order.sec) = position
         publish(PositionOpened(this, position))
         
       case Some(position) =>
         position.add(time, quantity, averagePrice)
         if (position.quantity == 0) {
-          _secToPositions -= order.sec
+          _secToPosition -= order.sec
           publish(PositionClosed(this, position))
         } else {
           publish(PositionChanged(this, position))

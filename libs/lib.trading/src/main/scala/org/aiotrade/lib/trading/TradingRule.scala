@@ -27,6 +27,16 @@ class TradingRule {
     math.min(quantity, quote.volume * quantityPerLot * tradableProportionOfVolume).toInt
   }
 
+  def cutLossRule(position: Position): Boolean = {
+    position.profitRatio < -0.05
+  }
+  
+  def takeProfitRule(position: Position): Boolean = {
+    position.profitRatio < position.maxProfitRatio * 0.6
+  }
+
+  // -- helper
+  
   protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
     math.min(fund / price, volume * quantityPerLot * tradableProportionOfVolume)
   }
@@ -35,11 +45,4 @@ class TradingRule {
     quantity.toInt / quantityPerLot * quantityPerLot
   }
   
-  def cutLossRule(position: Position): Boolean = {
-    position.profitRatio < -0.05
-  }
-  
-  def takeProfitRule(position: Position): Boolean = {
-    position.profitRatio < position.maxProfitRatio * 0.6
-  }
 }

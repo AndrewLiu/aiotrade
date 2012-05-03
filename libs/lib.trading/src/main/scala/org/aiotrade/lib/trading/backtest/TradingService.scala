@@ -27,6 +27,7 @@ import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
+import scala.concurrent.SyncVar
 
 case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
 
@@ -40,6 +41,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   protected val log = Logger.getLogger(this.getClass.getName)
   
   private case class Go(fromTime: Long, toTime: Long)
+  private val done = new SyncVar[Boolean]()
   
   protected val timestamps = referSer.timestamps.clone
   protected val freq = referSer.freq
@@ -49,6 +51,12 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   protected var pendingOrders = List[OrderCompose]()
   protected var buyingOrders = List[Order]()
   protected var sellingOrders = List[Order]()
+  
+  protected var fromTime: Long = _
+  protected var toTime: Long = _
+  protected var fromIdx: Int = _
+  protected var toIdx: Int = _
+  protected var initialReferPrice: Double = _
 
   /** current closed refer idx */
   protected var closeReferIdx = 0
@@ -57,7 +65,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
 
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
-      val position = getPosition(secValidTime.ref)
+      val position = positionOf(secValidTime.ref).getOrElse(null)
       side match {
         case Side.ExitPicking if position == null =>
         case _ => triggers += Trigger(secValidTime.ref, position, secValidTime.validFrom, side)
@@ -68,7 +76,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
       log.info("Got signal: sec=%s, signal=%s".format(sec.uniSymbol, signal))
       val time = signalEvt.signal.time
       val side = signalEvt.signal.kind.asInstanceOf[Side]
-      val position = getPosition(sec)
+      val position = positionOf(sec).getOrElse(null)
       side match {
         case (Side.ExitLong | Side.ExitShort | Side.ExitPicking | Side.CutLoss | Side.TakeProfit) if position == null =>
         case _ => triggers += Trigger(sec, position, time, side)
@@ -107,7 +115,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
     log.info("Inited singals in %ss.".format((System.currentTimeMillis - t0) / 1000))
   }
   
-  protected def getPosition(sec: Sec): Position = account.positions.getOrElse(sec, null)
+  protected def positionOf(sec: Sec): Option[Position] = account.positions.get(sec)
   
   protected def buy(sec: Sec): OrderCompose = {
     val order = new OrderCompose(sec, OrderSide.Buy, closeReferIdx)
@@ -130,34 +138,47 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   def go(fromTime: Long, toTime: Long) {
     initSignalIndicators
     publish(Go(fromTime, toTime))
+    // We should make this calling synchronized, so block here untill done
+    done.get
   }
   
   private def doGo(fromTime: Long, toTime: Long) {
-    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-    val initialReferPrice = referSer.open(fromIdx)
+    this.fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+    this.toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    this.fromTime = timestamps(fromIdx)
+    this.toTime = timestamps(toIdx)
+    this.initialReferPrice = referSer.open(fromIdx)
+    
     var i = fromIdx
     while (i <= toIdx) {
       closeReferIdx = i
       executeOrders
       updatePositionsPrice
+      
+      log.info("%1$tY.%1$tm.%1$td: bought=%2$s, sold=%3$s, balance=%4$.2f, equity=%5$.2f, positions=%6$s".format(
+          new Date(closeTime), buyingOrders.size, sellingOrders.size, account.balance, account.equity, account.positions.values)
+      )
+      
       // @todo process unfilled orders
 
       param.publish(ReportData(account.description, 0, closeTime, account.equity / account.initialEquity * 100))
       param.publish(ReportData("Refer", 0, closeTime, referSer.close(i) / initialReferPrice * 100 - 100))
 
-      // -- todays ordered processed, no begin to check new conditions and 
-      // -- prepare new orders according today's close status.
+      // -- todays ordered processed, now begin to check new conditions and 
+      //    prepare new orders according to today's close status.
       
       secPicking.go(closeTime)
       checkStopCondition
       at(i)
       processPendingOrders
+
+
       i += 1
     }
     
     // release resources. @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
     deafTo(Signal)
+    done.set(true)
     org.aiotrade.lib.math.indicator.Function.releaseAll
   }
   
@@ -254,7 +275,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
   private def adjustBuyingOrders(buyingOrders: List[Order]) {
     var orders = buyingOrders.sortBy(_.price)
     var amount = 0.0
-    while ({amount = calcTotalFund(buyingOrders); amount > account.balance}) {
+    while ({amount = calcTotalBuyingFund(buyingOrders); amount > account.balance}) {
       orders match {
         case order :: tail =>
           order.quantity -= tradingRule.quantityPerLot
@@ -265,7 +286,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
     }
   }
   
-  private def calcTotalFund(orders: List[Order]) = {
+  private def calcTotalBuyingFund(orders: List[Order]) = {
     orders.foldLeft(0.0){(s, x) => s + x.quantity * x.price + account.expenseScheme.getBuyExpenses(x.quantity, x.price)}
   }
   
@@ -279,11 +300,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
     sellingOrders map broker.prepareOrder foreach {orderExecutor => 
       orderExecutor.submit
       pseudoProcessTrade(orderExecutor.order)
-    }
-    
-    log.info("%1$tY.%1$tm.%1$td: bought=%2$s, sold=%3$s, balance=%4$s".format(
-        new Date(closeTime), buyingOrders.size, sellingOrders.size, account.balance)
-    )
+    }    
   }
   
   private def pseudoProcessTrade(order: Order) {

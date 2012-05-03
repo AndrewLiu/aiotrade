@@ -76,6 +76,13 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
    */
   def profitRatio = if (_quantity == 0) 0 else if (isLong) (_currentPrice - _price) / _price else (_price - _currentPrice) / _price
   def maxProfitRatio = _maxProfitRatio
+  
+  override 
+  def toString = {
+    "%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, equity=%.2f, profitRatio=%.2f%%, type=%s".format(
+      sec.uniSymbol, price, quantity, currentPrice, equity, profitRatio * 100, if (isLong) "Long" else "Short"
+    )
+  }
 }
 
 object Position {
