@@ -156,7 +156,7 @@ class TradingService(broker: Broker, account: Account, param: Param, tradingRule
       updatePositionsPrice
       
       log.info("%1$tY.%1$tm.%1$td: bought=%2$s, sold=%3$s, balance=%4$.2f, equity=%5$.2f, positions=%6$s".format(
-          new Date(closeTime), buyingOrders.size, sellingOrders.size, account.balance, account.equity, account.positions.values)
+          new Date(closeTime), buyingOrders.size, sellingOrders.size, account.balance, account.equity, account.positions.values.size)
       )
       
       // @todo process unfilled orders
