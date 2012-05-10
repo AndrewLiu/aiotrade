@@ -10,7 +10,8 @@ import scala.collection.mutable
 
 class Account(private var _description: String, 
               private var _balance: Double, 
-              private var _expenseScheme: ExpenseScheme = NoExpensesScheme, 
+              private var _expenseScheme: ExpenseScheme, 
+              val tradingRule: TradingRule,
               val currency: Currency = Currency.getInstance(Locale.getDefault)) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
