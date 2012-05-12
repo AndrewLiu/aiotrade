@@ -9,7 +9,8 @@ import org.aiotrade.lib.securities.model.Quote
 class TradingRule {
   val quantityPerLot = 100
   val tradableProportionOfVolume = 0.1
-
+  val expenseScheme: ExpenseScheme = ShenzhenExpenseScheme(0.0008)
+  
   def buyPriceRule(quote: Quote): Double = {
     quote.open
   }

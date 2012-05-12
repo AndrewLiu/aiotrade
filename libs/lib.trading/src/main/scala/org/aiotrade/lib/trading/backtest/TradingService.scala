@@ -22,7 +22,6 @@ import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.SecPicking
 import org.aiotrade.lib.trading.SecPickingEvent
-import org.aiotrade.lib.trading.ShanghaiExpenseScheme
 import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
@@ -305,7 +304,7 @@ class TradingService(broker: Broker, val accounts: Array[Account], param: Param,
   }
   
   private def calcTotalBuyingFund(orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => s + x.quantity * x.price + x.account.expenseScheme.getBuyExpenses(x.quantity, x.price)}
+    orders.foldLeft(0.0){(s, x) => s + x.quantity * x.price + x.account.tradingRule.expenseScheme.getBuyExpenses(x.quantity, x.price)}
   }
   
   private def executeOrders {
@@ -465,7 +464,7 @@ object TradingService {
     } {
       val broker = new PaperBroker("Backtest")
       val tradingRule = new TradingRule()
-      val account = new Account("Backtest", 10000000.0, ShanghaiExpenseScheme(0.0008), tradingRule)
+      val account = new Account("Backtest", 10000000.0, tradingRule)
     
       val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
     

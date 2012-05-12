@@ -94,7 +94,8 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
   
   def transactions = _transactions.toArray
   
-  def fill(time: Long, price: Double, size: Double) {
+  def fill(time: Long, priceOrIndex: Double, size: Double) {
+    val price = priceOrIndex * account.multiplier
     val remainQuantity = quantity - _filledQuantity
     val executedQuantity = math.min(size, remainQuantity)
     
@@ -105,9 +106,9 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
 
       side match {
         case OrderSide.Buy | OrderSide.BuyCover =>
-          _transactions += SecurityTransaction(time, sec,  executedQuantity, price)
+          _transactions += SecurityTransaction(time, sec,  executedQuantity, price, account.marginRate)
         case OrderSide.Sell | OrderSide.SellShort =>
-          _transactions += SecurityTransaction(time, sec, -executedQuantity, price)
+          _transactions += SecurityTransaction(time, sec, -executedQuantity, price, account.marginRate)
         case _ =>
       }
 

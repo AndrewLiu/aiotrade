@@ -8,44 +8,41 @@ import java.util.Locale
 import java.util.UUID
 import scala.collection.mutable
 
-class Account(private var _description: String, 
-              private var _balance: Double, 
-              private var _expenseScheme: ExpenseScheme, 
+class Account(protected var _description: String, 
+              protected var _balance: Double, 
               val tradingRule: TradingRule,
-              val currency: Currency = Currency.getInstance(Locale.getDefault)) extends Publisher {
+              val marginRate: Double = 1.0,
+              /** contract multiplier,  price per index point, 300.0 in China Index Future, 1 for stock */
+              val multiplier: Double = 1.0,
+              val currency: Currency = Currency.getInstance(Locale.getDefault)
+) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
   
-  private val _transactions = new ArrayList[Transaction]()
-  private val _secToPosition = new mutable.HashMap[Sec, Position]()
+  protected val _transactions = new ArrayList[Transaction]()
+  protected val _secToPosition = new mutable.HashMap[Sec, Position]()
   
   val initialEquity = _balance
   def equity = {
     _balance + _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
   }
-
+  
   def balance: Double = _balance
-  def increaseFund(fund: Double) {
-    _balance += fund
-  }
+  def deposite(fund: Double) {_balance += fund}
+  def withdraw(fund: Double) {_balance -= fund}
 
   def description = _description
   def description(description: String) {
     _description = description
   }
   
-  def expenseScheme = _expenseScheme
-  def expenseScheme_=(expenseScheme: ExpenseScheme) {
-    _expenseScheme = expenseScheme
-  }
-
   def positions = _secToPosition
   def transactions = _transactions.toArray
   
   def processFilledOrder(time: Long, order: Order) {
     val expenses = order.side match {
-      case OrderSide.Buy => _expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
-      case OrderSide.Sell => _expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
+      case OrderSide.Buy => tradingRule.expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
+      case OrderSide.Sell => tradingRule.expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
       case _ => 0.0
     }
     
@@ -58,7 +55,7 @@ class Account(private var _description: String,
       case OrderSide.Sell | OrderSide.SellShort => -order.filledQuantity 
       case OrderSide.Buy  | OrderSide.BuyCover  =>  order.filledQuantity
     }
-    val averagePrice = transaction.amount / order.filledQuantity
+    val averagePrice = transaction.amount / marginRate / order.filledQuantity
     
     _secToPosition.get(order.sec) match {
       case None => 
@@ -77,4 +74,3 @@ class Account(private var _description: String,
     }
   }
 }
-
