@@ -24,8 +24,8 @@ class TradingRule {
     quote.open
   }
   
-  def buyQuantityRule(quote: Quote, price: Double, fund: Double): Int = {
-    val quantity = maxQuantity(quote.volume, price, fund)
+  def buyQuantityRule(quote: Quote, price: Double, funds: Double): Int = {
+    val quantity = maxQuantity(quote.volume, price, funds)
     roundQuantity(quantity)
   }
   
@@ -34,17 +34,17 @@ class TradingRule {
   }
 
   def cutLossRule(position: Position): Boolean = {
-    position.profitRatio < -0.05
+    position.gainAndLossRatio < -0.05
   }
   
   def takeProfitRule(position: Position): Boolean = {
-    position.profitRatio < position.maxProfitRatio * 0.6
+    position.gainAndLossRatio < position.maxGainAndLossRatio * 0.6
   }
 
   // -- helper
   
-  protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
-    math.min(fund / (price * multiplier * marginRate), volume * quantityPerLot * tradableProportionOfVolume)
+  protected def maxQuantity(volume: Double, price: Double, funds: Double) = {
+    math.min(funds / (price * multiplier * marginRate), volume * quantityPerLot * tradableProportionOfVolume)
   }
   
   protected def roundQuantity(quantity: Double): Int = {

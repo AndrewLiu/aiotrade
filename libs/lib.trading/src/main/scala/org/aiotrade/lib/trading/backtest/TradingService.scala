@@ -285,8 +285,8 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
           val closingx = (closing -- conflicts).values.toList
 
           // opening
-          val estimateFundPerSec = account.balance / openingx.size
-          val openingOrdersx = openingx flatMap {_ fund (estimateFundPerSec) toOrder}
+          val estimateFundsPerSec = account.balance / openingx.size
+          val openingOrdersx = openingx flatMap {_ funds (estimateFundsPerSec) toOrder}
           adjustOpeningOrders(account, openingOrdersx)
         
           // closing
@@ -311,7 +311,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   private def adjustOpeningOrders(account: Account, openingOrders: List[Order]) {
     var orders = openingOrders.sortBy(_.price)
     var amount = 0.0
-    while ({amount = calcTotalOpeningFund(account, openingOrders); amount > account.balance}) {
+    while ({amount = calcTotalOpeningFunds(account, openingOrders); amount > account.balance}) {
       orders match {
         case order :: tail =>
           order.quantity -= account.tradingRule.quantityPerLot
@@ -322,7 +322,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     }
   }
   
-  private def calcTotalOpeningFund(account: Account, orders: List[Order]) = {
+  private def calcTotalOpeningFunds(account: Account, orders: List[Order]) = {
     orders.foldLeft(0.0){(s, x) => 
       s + 
       x.quantity * x.price * account.tradingRule.multiplier * account.tradingRule.marginRate + 
@@ -367,7 +367,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     val ser = sec.serOf(freq).get
     private var _account = TradingService.this.account
     private var _price = Double.NaN
-    private var _fund = Double.NaN
+    private var _funds = Double.NaN
     private var _quantity = Double.NaN
     private var _afterIdx = 0
 
@@ -383,8 +383,8 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
       this
     }
 
-    def fund(fund: Double) = {
-      _fund = fund
+    def funds(funds: Double) = {
+      _funds = funds
       this
     }
     
@@ -411,7 +411,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
                 _price = _account.tradingRule.buyPriceRule(quote)
               }
               if (_quantity.isNaN) {
-                _quantity = _account.tradingRule.buyQuantityRule(quote, _price, _fund)
+                _quantity = _account.tradingRule.buyQuantityRule(quote, _price, _funds)
               }
             case OrderSide.Sell | OrderSide.BuyCover =>
               if (_price.isNaN) {
@@ -446,7 +446,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     
     override 
     def toString = {
-      "OrderCompose(" + _account.description + "," + sec.uniSymbol + "," + side + "," + _fund + "," + _quantity + "," + _price + ")"
+      "OrderCompose(" + _account.description + "," + sec.uniSymbol + "," + side + "," + _funds + "," + _quantity + "," + _price + ")"
     }
   }
 
