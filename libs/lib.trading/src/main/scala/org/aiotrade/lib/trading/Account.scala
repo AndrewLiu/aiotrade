@@ -8,13 +8,7 @@ import java.util.Locale
 import java.util.UUID
 import scala.collection.mutable
 
-class Account(protected var _description: String, 
-              protected var _balance: Double, 
-              val tradingRule: TradingRule,
-              val marginRate: Double = 1.0,
-              /** contract multiplier,  price per index point, 300.0 in China Index Future, 1 for stock */
-              val multiplier: Double = 1.0,
-              val currency: Currency = Currency.getInstance(Locale.getDefault)
+class Account(val description: String, protected var _balance: Double, val tradingRule: TradingRule, val currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
@@ -31,11 +25,6 @@ class Account(protected var _description: String,
   def deposite(fund: Double) {_balance += fund}
   def withdraw(fund: Double) {_balance -= fund}
 
-  def description = _description
-  def description(description: String) {
-    _description = description
-  }
-  
   def positions = _secToPosition
   def transactions = _transactions.toArray
   
@@ -55,7 +44,7 @@ class Account(protected var _description: String,
       case OrderSide.Sell | OrderSide.SellShort => -order.filledQuantity 
       case OrderSide.Buy  | OrderSide.BuyCover  =>  order.filledQuantity
     }
-    val averagePrice = transaction.amount / marginRate / order.filledQuantity
+    val averagePrice = order.averagePrice
     
     _secToPosition.get(order.sec) match {
       case None => 

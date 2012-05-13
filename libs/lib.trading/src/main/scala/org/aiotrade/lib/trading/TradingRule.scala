@@ -11,6 +11,11 @@ class TradingRule {
   val tradableProportionOfVolume = 0.1
   val expenseScheme: ExpenseScheme = ShenzhenExpenseScheme(0.0008)
   
+  // -- usally for futures
+  val marginRate: Double = 1.0
+  /** contract multiplier,  price per index point, 300.0 in China Index Future, 1 for stock */
+  val multiplier: Double = 1.0
+  
   def buyPriceRule(quote: Quote): Double = {
     quote.open
   }
@@ -39,11 +44,10 @@ class TradingRule {
   // -- helper
   
   protected def maxQuantity(volume: Double, price: Double, fund: Double) = {
-    math.min(fund / price, volume * quantityPerLot * tradableProportionOfVolume)
+    math.min(fund / (price * multiplier * marginRate), volume * quantityPerLot * tradableProportionOfVolume)
   }
   
   protected def roundQuantity(quantity: Double): Int = {
     quantity.toInt / quantityPerLot * quantityPerLot
   }
-  
 }

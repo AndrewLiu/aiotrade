@@ -29,10 +29,10 @@ case class ExpenseTransaction(val time: Long, val amount: Double) extends Transa
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double, marginRate: Double = 1.0) extends Transaction {
+case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
   val description = "%s %s at %s".format(sec.uniSymbol, quantity, price)
-  val amount = quantity * price * marginRate
+  val amount = quantity * price
   val order: Order = null
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
