@@ -22,9 +22,9 @@ class Account(val description: String, protected var _balance: Double, val tradi
   def credit(funds: Double) {_balance += funds}
   def debit (funds: Double) {_balance -= funds}
 
-  def positionGainAndLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainAndLoss}
-  def positionEquity      = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
-  def positionMargin      = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity * tradingRule.marginRate}
+  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
+  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
+  def positionMargin   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity * tradingRule.marginRate}
 
   def equity = _balance + positionEquity
   def availableFunds = equity - positionMargin
@@ -37,7 +37,7 @@ class Account(val description: String, protected var _balance: Double, val tradi
       case OrderSide.Buy | OrderSide.SellShort => 
         tradingRule.expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
       case OrderSide.Sell | OrderSide.BuyCover => 
-        //val offsetGainAndLoss =
+        //val offsetGainLoss =
         tradingRule.expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
       case _ => 0.0
     }

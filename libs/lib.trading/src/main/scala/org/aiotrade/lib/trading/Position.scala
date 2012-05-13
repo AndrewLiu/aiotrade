@@ -8,7 +8,7 @@ class Position private (var _account: Account, private var _time: Long, private 
 
   private var _subPositions: ArrayList[Position] = null
   private var _currentPrice = _price
-  private var _maxGainAndLossRatio = 0.0
+  private var _maxGainLossRatio = 0.0
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
   
@@ -41,7 +41,7 @@ class Position private (var _account: Account, private var _time: Long, private 
     _price = price
   }
   
-  def gainAndLoss = signum * (_currentPrice - _price) * quantity * _account.tradingRule.multiplier
+  def gainLoss = signum * (_currentPrice - _price) * quantity * _account.tradingRule.multiplier
   def equity = _currentPrice * quantity * _account.tradingRule.multiplier
   
   def currentPrice = _currentPrice
@@ -49,7 +49,7 @@ class Position private (var _account: Account, private var _time: Long, private 
   def update(currentPrice: Double) {
     if (!currentPrice.isNaN) {
       _currentPrice = currentPrice
-      _maxGainAndLossRatio = math.max(_maxGainAndLossRatio, gainAndLossRatio)
+      _maxGainLossRatio = math.max(_maxGainLossRatio, gainLossRatio)
     }
   }
   
@@ -75,15 +75,15 @@ class Position private (var _account: Account, private var _time: Long, private 
   /**
    * @todo, consider expense
    */
-  def gainAndLossRatio = signum * (_currentPrice - _price) / _price
-  def maxGainAndLossRatio = _maxGainAndLossRatio
+  def gainLossRatio = signum * (_currentPrice - _price) / _price
+  def maxGainLossRatio = _maxGainLossRatio
   
   private def signum = if (isLong) 1 else if (isShort) -1 else 0
   
   override 
   def toString = {
-    "%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainAndLoss=%.2f, gainAndLossRatio=%.2f%%, type=%s".format(
-      sec.uniSymbol, price, quantity, currentPrice, gainAndLoss, gainAndLossRatio * 100, if (isLong) "Long" else "Short"
+    "%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%, type=%s".format(
+      sec.uniSymbol, price, quantity, currentPrice, gainLoss, gainLossRatio * 100, if (isLong) "Long" else "Short"
     )
   }
 }

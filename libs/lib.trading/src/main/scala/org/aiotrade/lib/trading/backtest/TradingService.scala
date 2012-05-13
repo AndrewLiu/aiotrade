@@ -301,7 +301,6 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
           openingOrders += account -> buyingOrdersx
           closingOrders += account -> sellingOrdersx
       }
-      
     } // end if
   }
   

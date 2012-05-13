@@ -34,11 +34,11 @@ class TradingRule {
   }
 
   def cutLossRule(position: Position): Boolean = {
-    position.gainAndLossRatio < -0.05
+    position.gainLossRatio < -0.05
   }
   
   def takeProfitRule(position: Position): Boolean = {
-    position.gainAndLossRatio < position.maxGainAndLossRatio * 0.6
+    position.gainLossRatio < position.maxGainLossRatio * 0.6
   }
 
   // -- helper
