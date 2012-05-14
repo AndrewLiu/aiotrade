@@ -217,7 +217,6 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
       log.info("%1$tY.%1$tm.%1$td: %2$s, bought=%3$s, sold=%4$s".format(
           new Date(closeTime), account, openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size)
       )
-      param.publish(ReportData(account.description, 0, closeTime, account.equity / account.initialEquity * 100))
     }
 
     val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
