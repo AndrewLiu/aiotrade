@@ -22,6 +22,7 @@ import org.aiotrade.lib.trading.PaperBroker
 import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.SecPicking
 import org.aiotrade.lib.trading.SecPickingEvent
+import org.aiotrade.lib.trading.StockAccount
 import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
@@ -213,15 +214,14 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   
   def report(idx: Int) {
     accounts foreach {account =>
-      log.info("%1$tY.%1$tm.%1$td: %2$s, bought=%3$s, sold=%4$s, balance=%5$.2f, equity=%6$.2f, positions=%7$s".format(
-          new Date(closeTime), account.description, 
-          openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size, 
-          account.balance, account.equity, account.positions.values.size)
+      log.info("%1$tY.%1$tm.%1$td: %2$s, bought=%3$s, sold=%4$s".format(
+          new Date(closeTime), account, openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size)
       )
+      param.publish(ReportData(account.description, 0, closeTime, account.equity / account.initialEquity * 100))
     }
 
     val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
-    param.publish(ReportData(account.description, 0, closeTime, equity / initialEquity * 100))
+    param.publish(ReportData("Total", 0, closeTime, equity / initialEquity * 100))
     param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / initialReferPrice * 100 - 100))
   }
   
@@ -272,7 +272,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
                 }
               } else {
                 order.side match {
-                  case OrderSide.Buy | OrderSide.SellShort => // @todo pending after n days?
+                  case OrderSide.Buy | OrderSide.SellShort => order after (1) // pending 1 day?
                   case OrderSide.Sell | OrderSide.BuyCover => order after (1) // pending 1 day
                   case _ =>
                 }
@@ -280,13 +280,19 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
             }
           }
 
+          if (account.availableFunds <= 0) {
+            opening == Nil
+          }
+          
           val conflicts = Nil//opening.keysIterator filter (closing.contains(_))
           val openingx = (opening -- conflicts).values.toList
           val closingx = (closing -- conflicts).values.toList
 
           // opening
-          val estimateFundsPerSec = account.balance / openingx.size
-          val openingOrdersx = openingx flatMap {_ funds (estimateFundsPerSec) toOrder}
+          val (noFunds, withFunds) = openingx partition (_.funds.isNaN)
+          val assignedFunds = withFunds.foldLeft(0.0){(s, x) => s + x.funds}
+          val estimateFundsPerSec = (account.availableFunds - assignedFunds) / noFunds.size
+          val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap (_.toOrder)
           adjustOpeningOrders(account, openingOrdersx)
         
           // closing
@@ -310,7 +316,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   private def adjustOpeningOrders(account: Account, openingOrders: List[Order]) {
     var orders = openingOrders.sortBy(_.price)
     var amount = 0.0
-    while ({amount = calcTotalOpeningFunds(account, openingOrders); amount > account.balance}) {
+    while ({amount = calcTotalOpeningFunds(account, openingOrders); amount > account.availableFunds}) {
       orders match {
         case order :: tail =>
           order.quantity -= account.tradingRule.quantityPerLot
@@ -325,7 +331,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     orders.foldLeft(0.0){(s, x) => 
       s + 
       x.quantity * x.price * account.tradingRule.multiplier * account.tradingRule.marginRate + 
-      x.account.tradingRule.expenseScheme.getBuyExpenses(x.quantity, x.price * account.tradingRule.multiplier)
+      x.account.tradingRule.expenseScheme.getOpeningExpenses(x.quantity, x.price * account.tradingRule.multiplier)
     }
   }
   
@@ -371,22 +377,24 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     private var _afterIdx = 0
 
     def account = _account
-    
     def using(account: Account) = {
       _account = account
       this
     }
     
+    def price = _price
     def price(price: Double) = {
       _price = price
       this
     }
 
+    def funds = _funds
     def funds(funds: Double) = {
       _funds = funds
       this
     }
     
+    def quantity = _quantity
     def quantity(quantity: Double) = {
       _quantity = quantity
       this
@@ -500,7 +508,7 @@ object TradingService {
     } {
       val broker = new PaperBroker("Backtest")
       val tradingRule = new TradingRule()
-      val account = new Account("Backtest", 10000000.0, tradingRule)
+      val account = new StockAccount("Backtest", 10000000.0, tradingRule)
     
       val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
     

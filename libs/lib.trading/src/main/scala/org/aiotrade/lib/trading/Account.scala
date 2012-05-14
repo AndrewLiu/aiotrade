@@ -8,8 +8,8 @@ import java.util.Locale
 import java.util.UUID
 import scala.collection.mutable
 
-class Account(val description: String, protected var _balance: Double, val tradingRule: TradingRule, 
-              val currency: Currency = Currency.getInstance(Locale.getDefault)
+abstract class Account(val description: String, protected var _balance: Double, val tradingRule: TradingRule, 
+                       val currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
@@ -22,23 +22,30 @@ class Account(val description: String, protected var _balance: Double, val tradi
   def credit(funds: Double) {_balance += funds}
   def debit (funds: Double) {_balance -= funds}
 
-  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
-  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
-  def positionMargin   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity * tradingRule.marginRate}
+  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss * tradingRule.multiplier}
+  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity   * tradingRule.multiplier}
 
-  def equity = _balance + positionEquity
-  def availableFunds = equity - positionMargin
-  
   def positions = _secToPosition
   def transactions = _transactions.toArray
+
+  def equity: Double
+  def availableFunds: Double
+  def processFilledOrder(time: Long, order: Order): Unit
+}
+
+class StockAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
+                   $currency: Currency = Currency.getInstance(Locale.getDefault)
+) extends Account($description, $balance, $tradingRule, $currency) {
+  
+  def equity = _balance + positionEquity
+  def availableFunds = _balance
   
   def processFilledOrder(time: Long, order: Order) {
     val expenses = order.side match {
       case OrderSide.Buy | OrderSide.SellShort => 
-        tradingRule.expenseScheme.getBuyExpenses(order.filledQuantity, order.averagePrice)
+        tradingRule.expenseScheme.getOpeningExpenses(order.filledQuantity, order.averagePrice)
       case OrderSide.Sell | OrderSide.BuyCover => 
-        //val offsetGainLoss =
-        tradingRule.expenseScheme.getSellExpenses(order.filledQuantity, order.averagePrice)
+        tradingRule.expenseScheme.getClosingExpenses(order.filledQuantity, order.averagePrice)
       case _ => 0.0
     }
     
@@ -70,4 +77,71 @@ class Account(val description: String, protected var _balance: Double, val tradi
         }
     }
   }
+  
+  override 
+  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positions=%4$s".format(
+    description, availableFunds, equity, positions.values.size
+  )
+}
+
+class FutureAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
+                    $currency: Currency = Currency.getInstance(Locale.getDefault)
+) extends Account($description, $balance, $tradingRule, $currency) {
+  
+  def positionMargin = positionEquity * tradingRule.marginRate
+  def riskLevel = positionMargin / equity * 100
+  
+  def equity = _balance + positionGainLoss
+  def availableFunds = equity - positionMargin
+  
+  def processFilledOrder(time: Long, order: Order) {
+    val expenses = order.side match {
+      case OrderSide.Buy | OrderSide.SellShort => 
+        tradingRule.expenseScheme.getOpeningExpenses(order.filledQuantity, order.averagePrice)
+      case OrderSide.Sell | OrderSide.BuyCover => 
+        tradingRule.expenseScheme.getClosingExpenses(order.filledQuantity, order.averagePrice)
+      case _ => 0.0
+    }
+    
+    val expenseTransaction = ExpenseTransaction(time, expenses)
+    val transaction = TradeTransaction(time, order, order.transactions, if (expenses != 0.0) expenseTransaction else null)
+    _transactions += transaction
+    
+    _balance -= expenseTransaction.amount
+
+    val quantity = order.side match {
+      case OrderSide.Sell | OrderSide.SellShort => -order.filledQuantity 
+      case OrderSide.Buy  | OrderSide.BuyCover  =>  order.filledQuantity
+    }
+    val averagePrice = order.averagePrice
+    
+    _secToPosition.get(order.sec) match {
+      case None => 
+        val position = Position(this, time, order.sec, quantity, averagePrice)
+        _secToPosition(order.sec) = position
+        publish(PositionOpened(this, position))
+        
+      case Some(position) =>
+        order.side match {
+          case OrderSide.Buy | OrderSide.SellShort => 
+          case OrderSide.Sell | OrderSide.BuyCover => 
+            val offsetGainLoss = (averagePrice - position.price) * quantity * tradingRule.multiplier
+            _balance += offsetGainLoss
+          case _ =>
+        }
+
+        position.add(time, quantity, averagePrice)
+        if (position.quantity == 0) {
+          _secToPosition -= order.sec
+          publish(PositionClosed(this, position))
+        } else {
+          publish(PositionChanged(this, position))
+        }
+    }
+  }
+  
+  override 
+  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positionMargin=%4$.2f, risk=%5$.2f%%, positions=%6$s".format(
+    description, availableFunds, equity, positionMargin, riskLevel, positions.values.size
+  )
 }

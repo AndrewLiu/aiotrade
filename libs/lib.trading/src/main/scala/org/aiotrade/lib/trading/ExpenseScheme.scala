@@ -1,8 +1,8 @@
 package org.aiotrade.lib.trading
 
 trait ExpenseScheme {
-  def getBuyExpenses(quantity: Double, averagePrice: Double): Double
-  def getSellExpenses(quantity: Double, averagePrice: Double): Double
+  def getOpeningExpenses(quantity: Double, averagePrice: Double): Double
+  def getClosingExpenses(quantity: Double, averagePrice: Double): Double
 }
 
 object ExpenseScheme {
@@ -11,8 +11,8 @@ object ExpenseScheme {
 }
 
 object NoExpensesScheme extends ExpenseScheme {
-  def getBuyExpenses(quantity: Double, averagePrice: Double) = 0.0
-  def getSellExpenses(quantity: Double, averagePrice: Double) = 0.0
+  def getOpeningExpenses(quantity: Double, averagePrice: Double) = 0.0
+  def getClosingExpenses(quantity: Double, averagePrice: Double) = 0.0
 
   override 
   def hashCode = 11 * toString.hashCode
@@ -22,14 +22,14 @@ object NoExpensesScheme extends ExpenseScheme {
 }
 
 case class SimpleFixedScheme(expenses: Double = 9.95) extends ExpenseScheme {
-  def getBuyExpenses(quantity: Double, averagePrice: Double) = expenses
-  def getSellExpenses(quantity: Double, averagePrice: Double) = expenses
+  def getOpeningExpenses(quantity: Double, averagePrice: Double) = expenses
+  def getClosingExpenses(quantity: Double, averagePrice: Double) = expenses
 }
 
 
 case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximum: Double) extends ExpenseScheme {
 
-  def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = quantity * averagePrice / 100.0 * percentage
     if (expenses < minimum) {
       expenses = minimum
@@ -40,7 +40,7 @@ case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximu
     expenses
   }
 
-  def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getClosingExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = quantity * averagePrice / 100.0 * percentage
     if (expenses < minimum) {
       expenses = minimum
@@ -61,7 +61,7 @@ case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximu
  */
 case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level2: Double, minimum: Double) extends ExpenseScheme {
 
-  def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = level1 * (if (quantity > level1quantity) level1quantity else quantity)
     if (quantity > level1quantity) {
       expenses += level2 * (quantity - level1quantity)
@@ -72,7 +72,7 @@ case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level
     expenses
   }
 
-  def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getClosingExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = level1 * (if (quantity > level1quantity) level1quantity else quantity)
     if (quantity > level1quantity) {
       expenses += level2 * (quantity - level1quantity)
@@ -94,13 +94,13 @@ abstract class ChinaExpenseScheme extends ExpenseScheme {
   /** Usally RMB5.0 */
   def minimumBrokerageFee: Double
   
-  def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice
     math.max(brokerageRate * amount, minimumBrokerageFee) + 
     transferFee * (quantity / 1000 + 1)
   }
   
-  def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getClosingExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice
     math.max(brokerageRate * amount, minimumBrokerageFee) + 
     transferFee * (quantity / 1000 + 1) + 
@@ -113,12 +113,12 @@ case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0
 
 case class ChinaFinanceFutureScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.000050) extends ExpenseScheme {
   
-  def getBuyExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice
     (brokerageRate + stamptaxRate) * amount
   }
 
-  def getSellExpenses(quantity: Double, averagePrice: Double): Double = {
+  def getClosingExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice
     (brokerageRate + stamptaxRate) * amount
   }

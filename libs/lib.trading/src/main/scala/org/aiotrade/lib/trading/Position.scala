@@ -22,7 +22,6 @@ class Position private (var _account: Account, private var _time: Long, private 
         pos._sec = sec
         i += 1
       }
-    
     }
   }
   
@@ -40,9 +39,6 @@ class Position private (var _account: Account, private var _time: Long, private 
   def price_=(price: Double) {
     _price = price
   }
-  
-  def gainLoss = signum * (_currentPrice - _price) * quantity * _account.tradingRule.multiplier
-  def equity = _currentPrice * quantity * _account.tradingRule.multiplier
   
   def currentPrice = _currentPrice
   
@@ -72,8 +68,11 @@ class Position private (var _account: Account, private var _time: Long, private 
   def isLong: Boolean = _quantity > 0
   def isShort: Boolean = _quantity < 0
   
+  def gainLoss = (_currentPrice - _price) * quantity 
+  def equity = signum * _currentPrice * quantity
+
   /**
-   * @todo, consider expense
+   * @todo, consider expenses?
    */
   def gainLossRatio = signum * (_currentPrice - _price) / _price
   def maxGainLossRatio = _maxGainLossRatio

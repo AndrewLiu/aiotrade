@@ -150,7 +150,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
         yAxis.setLowerBound(lowerBound)
       
         dataChart = new LineChart[String, Number](xAxis, yAxis)
-        dataChart.setTitle("Profit Monitoring - " + param.titleDescription)
+        dataChart.setTitle("Equity Monitoring - " + param.titleDescription)
         dataChart.setCreateSymbols(false)
         dataChart.setLegendVisible(false)
         dataChart.setPrefHeight(0.9 * height)
