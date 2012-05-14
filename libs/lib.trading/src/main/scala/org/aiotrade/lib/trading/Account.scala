@@ -22,23 +22,31 @@ abstract class Account(val description: String, protected var _balance: Double, 
   def credit(funds: Double) {_balance += funds}
   def debit (funds: Double) {_balance -= funds}
 
-  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss * tradingRule.multiplier}
-  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity   * tradingRule.multiplier}
-
   def positions = _secToPosition
   def transactions = _transactions.toArray
 
+  def positionGainLoss: Double
+  def positionEquity: Double
   def equity: Double
   def availableFunds: Double
-  def processFilledOrder(time: Long, order: Order): Unit
+  def calcFundsToOpen(order: Order): Double
+  def processFilledOrder(time: Long, order: Order)
 }
 
 class StockAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
                    $currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Account($description, $balance, $tradingRule, $currency) {
-  
+
+  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
+  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
+
   def equity = _balance + positionEquity
   def availableFunds = _balance
+  
+  def calcFundsToOpen(order: Order) = {
+    order.quantity * order.price + 
+    tradingRule.expenseScheme.getOpeningExpenses(order.quantity, order.price)
+  }
   
   def processFilledOrder(time: Long, order: Order) {
     val expenses = order.side match {
@@ -88,11 +96,19 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
                     $currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Account($description, $balance, $tradingRule, $currency) {
   
-  def positionMargin = positionEquity * tradingRule.marginRate
   def riskLevel = positionMargin / equity * 100
+  def positionMargin = positionEquity * tradingRule.marginRate
+
+  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss * tradingRule.multiplier}
+  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity   * tradingRule.multiplier}
   
   def equity = _balance + positionGainLoss
   def availableFunds = equity - positionMargin
+  
+  def calcFundsToOpen(order: Order) = {
+    order.quantity * order.price * tradingRule.multiplier * tradingRule.marginRate + 
+    tradingRule.expenseScheme.getOpeningExpenses(order.quantity, order.price * tradingRule.multiplier)
+  }
   
   def processFilledOrder(time: Long, order: Order) {
     val expenses = order.side match {

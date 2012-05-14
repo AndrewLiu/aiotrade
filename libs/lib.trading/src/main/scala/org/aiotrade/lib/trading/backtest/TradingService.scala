@@ -315,7 +315,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   private def adjustOpeningOrders(account: Account, openingOrders: List[Order]) {
     var orders = openingOrders.sortBy(_.price)
     var amount = 0.0
-    while ({amount = calcTotalOpeningFunds(account, openingOrders); amount > account.availableFunds}) {
+    while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
       orders match {
         case order :: tail =>
           order.quantity -= account.tradingRule.quantityPerLot
@@ -326,12 +326,8 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     }
   }
   
-  private def calcTotalOpeningFunds(account: Account, orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => 
-      s + 
-      x.quantity * x.price * account.tradingRule.multiplier * account.tradingRule.marginRate + 
-      x.account.tradingRule.expenseScheme.getOpeningExpenses(x.quantity, x.price * account.tradingRule.multiplier)
-    }
+  private def calcTotalFundsToOpen(account: Account, orders: List[Order]) = {
+    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x)}
   }
   
   private def executeOrders {
