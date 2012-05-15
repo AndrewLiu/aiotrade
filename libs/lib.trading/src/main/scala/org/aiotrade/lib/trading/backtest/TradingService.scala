@@ -327,7 +327,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   }
   
   private def calcTotalFundsToOpen(account: Account, orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x)}
+    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.quantity, x.price)}
   }
   
   private def executeOrders {

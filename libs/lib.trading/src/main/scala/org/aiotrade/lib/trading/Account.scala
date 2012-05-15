@@ -29,7 +29,7 @@ abstract class Account(val description: String, protected var _balance: Double, 
   def positionEquity: Double
   def equity: Double
   def availableFunds: Double
-  def calcFundsToOpen(order: Order): Double
+  def calcFundsToOpen(quantity: Double, price: Double): Double
   def processFilledOrder(time: Long, order: Order)
 }
 
@@ -43,9 +43,9 @@ class StockAccount($description: String, $balance: Double, $tradingRule: Trading
   def equity = _balance + positionEquity
   def availableFunds = _balance
   
-  def calcFundsToOpen(order: Order) = {
-    order.quantity * order.price + 
-    tradingRule.expenseScheme.getOpeningExpenses(order.quantity, order.price)
+  def calcFundsToOpen(quantity: Double, price: Double) = {
+    quantity * price + 
+    tradingRule.expenseScheme.getOpeningExpenses(quantity, price)
   }
   
   def processFilledOrder(time: Long, order: Order) {
@@ -105,9 +105,9 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
   def equity = _balance + positionGainLoss
   def availableFunds = equity - positionMargin
   
-  def calcFundsToOpen(order: Order) = {
-    order.quantity * order.price * tradingRule.multiplier * tradingRule.marginRate + 
-    tradingRule.expenseScheme.getOpeningExpenses(order.quantity, order.price * tradingRule.multiplier)
+  def calcFundsToOpen(quantity: Double, price: Double) = {
+    quantity * price * tradingRule.multiplier * tradingRule.marginRate + 
+    tradingRule.expenseScheme.getOpeningExpenses(quantity, price * tradingRule.multiplier)
   }
   
   def processFilledOrder(time: Long, order: Order) {
@@ -157,7 +157,7 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
   }
   
   override 
-  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positionMargin=%4$.2f, risk=%5$.2f%%, positions=%6$s".format(
-    description, availableFunds, equity, positionMargin, riskLevel, positions.values.size
+  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positionEquity=%4$.2f, positionMargin=%5$.2f, risk=%6$.2f%%, positions=%7$s".format(
+    description, availableFunds, equity, positionEquity, positionMargin, riskLevel, positions.values.map(_.quantity).mkString("(", ",", ")")
   )
 }
