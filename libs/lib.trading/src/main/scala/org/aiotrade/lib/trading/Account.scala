@@ -87,7 +87,7 @@ class StockAccount($description: String, $balance: Double, $tradingRule: Trading
   }
   
   override 
-  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positions=%4$s".format(
+  def toString = "%1$s, availableFunds=%2$.0f, equity=%3$.0f, positions=%4$s".format(
     description, availableFunds, equity, positions.values.size
   )
 }
@@ -157,7 +157,7 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
   }
   
   override 
-  def toString = "%1$s, availableFunds=%2$.2f, equity=%3$.2f, positionEquity=%4$.2f, positionMargin=%5$.2f, risk=%6$.2f%%, positions=%7$s".format(
+  def toString = "%1$s, availableFunds=%2$.0f, equity=%3$.0f, positionEquity=%4$.0f, positionMargin=%5$.0f, risk=%6$.2f%%, positions=%7$s".format(
     description, availableFunds, equity, positionEquity, positionMargin, riskLevel, positions.values.map(_.quantity).mkString("(", ",", ")")
   )
 }
