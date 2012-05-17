@@ -37,12 +37,16 @@ class Benchmark(freq: TFreq) {
   private var maxDrawdownEquity = Double.MaxValue
   var maxDrawdownRatio = Double.MinValue
   
-  var profits: Array[Profit] = Array()
+  var weeklyProfits: Array[Profit] = Array()
+  var monthlyProfits: Array[Profit] = Array()
   var rrr: Double = _
-  var sharpeRatio: Double = _
+  var sharpeRatioOnWeeks: Double = _
+  var sharpeRatioOnMonths: Double = _
   
+  var weeklyRiskFreeRate = 0.0 // 0.003
   var monthlyRiskFreeRate = 0.0 // 0.003
   
+  var reportDayOfWeek = Calendar.SATURDAY
   var reportDayOfMonth = 26
   
   def at(time: Long, equity: Double) {
@@ -62,10 +66,13 @@ class Benchmark(freq: TFreq) {
   def report: String = {
     tradePeriod = daysBetween(tradeFromTime, tradeToTime)
     annualizedProfitRatio = math.pow(1 + profitRatio, 365.24 / tradePeriod) - 1
-    
     rrr = annualizedProfitRatio / maxDrawdownRatio
-    profits = calcMonthlyReturn(times.toArray, toNavs(initialEquity, equities))
-    sharpeRatio = 12 * calcSharpeRatio(profits)
+    
+    val navs = toNavs(initialEquity, equities)
+    weeklyProfits = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
+    monthlyProfits = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
+    sharpeRatioOnWeeks = 52 * calcSharpeRatio(weeklyProfits)
+    sharpeRatioOnMonths = 12 * calcSharpeRatio(monthlyProfits)
     
     toString
   }
@@ -117,7 +124,7 @@ class Benchmark(freq: TFreq) {
   /**
    * navs Net Asset Value
    */
-  private def calcMonthlyReturn(times: Array[Long], navs: Array[Double]) = {
+  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double])(getPeriodicReportTimeFun: (Calendar, Int) => Long)(riskFreeRate: Double) = {
     val reportTimes = new ArrayList[Long]()
     val reportNavs = new ArrayList[Double]()
     val now = Calendar.getInstance
@@ -130,17 +137,22 @@ class Benchmark(freq: TFreq) {
       val nav = navs(i)
       now.setTimeInMillis(time)
       if (reportTime == Long.MaxValue) {
-        reportTime = getReportTime(now, reportDayOfMonth)
+        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
       }
-      if (time > reportTime && prevTime <= reportTime) {
-        reportTimes += reportTime
-        reportNavs += prevNav
-        reportTime = getReportTime(now, reportDayOfMonth)
-      } else {
-        if (i == times.length - 1) {
-          reportTimes += getReportTime(now, reportDayOfMonth)
-          reportNavs += nav
+      
+      var reported = false
+      if (time > reportTime) {
+        if (prevTime <= reportTime) {
+          reportTimes += reportTime
+          reportNavs += prevNav
+          reported = true
         }
+        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
+      }
+      
+      if (!reported && i == times.length - 1) {
+        reportTimes += getPeriodicReportTimeFun(now, reportDayOfWeek)
+        reportNavs += nav
       }
       
       prevTime = time
@@ -157,7 +169,7 @@ class Benchmark(freq: TFreq) {
         val nav = reportNavs(i)
         val accRate = nav - 1
         val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else 0.0
-        profits += Profit(time, nav, accRate, periodRate, monthlyRiskFreeRate)
+        profits += Profit(time, nav, accRate, periodRate, riskFreeRate)
         i += 1
       }
       
@@ -165,19 +177,36 @@ class Benchmark(freq: TFreq) {
     } else {
       Array[Profit]()
     }
-  }
+  } 
   
   /**
-   * @param the current date
+   * @param the current date calendar
    * @param the day of month of settlement, last day of each month if -1 
    */
-  private def getReportTime(now: Calendar, _reportDayOfMonth: Int = -1) = {
+  private def getWeeklyReportTime(now: Calendar, _reportDayOfWeek: Int = -1) = {
+    val reportDayOfWeek = if (_reportDayOfWeek == -1) {
+      Calendar.SATURDAY
+    } else _reportDayOfWeek
+    
+    if (now.get(Calendar.DAY_OF_WEEK) > reportDayOfWeek) {
+      now.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
+    }
+    
+    now.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
+    now.getTimeInMillis
+  }
+
+  /**
+   * @param the current date calendar
+   * @param the day of month of settlement, last day of each month if -1 
+   */
+  private def getMonthlyReportTime(now: Calendar, _reportDayOfMonth: Int = -1) = {
     val reportDayOfMonth = if (_reportDayOfMonth == -1) {
       now.getActualMaximum(Calendar.DAY_OF_MONTH)
     } else _reportDayOfMonth
     
     if (now.get(Calendar.DAY_OF_MONTH) > reportDayOfMonth) {
-      now.add(Calendar.MONTH, 1) // will settlement in next month
+      now.add(Calendar.MONTH, 1) // will report in next month
     }
     
     now.set(Calendar.DAY_OF_MONTH, reportDayOfMonth)
@@ -186,18 +215,24 @@ class Benchmark(freq: TFreq) {
 
   override 
   def toString = {
-    """================ Benchmark Report ================
-Trade period      : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td in %3$s days
-Initial equity    : %4$.0f
-Final equity      : %5$.0f  
-Total Return      : %6$.2f%%
-Annualized Return : %7$.2f%% 
-Max Drawdown      : %8$.2f%%
-RRR               : %9$.2f
-Sharpe ratio      : %10$.2f
+    """
+================ Benchmark Report ================
+Trade period           : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td in %3$s days
+Initial equity         : %4$.0f
+Final equity           : %5$.0f  
+Total Return           : %6$.2f%%
+Annualized Return      : %7$.2f%% 
+Max Drawdown           : %8$.2f%%
+RRR                    : %9$.2f
+Sharpe Ratio on Weeks  : %10$.2f  (%11$s weeks)
+Sharpe Ratio on Months : %12$.2f  (%13$s months)
+================ Weekly Return ================
+Date                  nav       acc-return   period-return       rf-return   sharpe-return
+%14$s
+
 ================ Monthly Return ================
-Date                  nav       acc-return   period-return       rf-return    sharpe-return
-%11$s
+Date                  nav       acc-return   period-return       rf-return   sharpe-return
+%15$s
     """.format(
       tradeFromTime, tradeToTime, tradePeriod,
       initialEquity,
@@ -206,8 +241,10 @@ Date                  nav       acc-return   period-return       rf-return    sh
       annualizedProfitRatio * 100,
       maxDrawdownRatio * 100,
       rrr,
-      sharpeRatio,
-      profits.mkString("\n")
+      sharpeRatioOnWeeks, weeklyProfits.length,
+      sharpeRatioOnMonths, monthlyProfits.length,
+      weeklyProfits.mkString("\n"),
+      monthlyProfits.mkString("\n")
     )
   }
   
