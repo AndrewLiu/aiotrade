@@ -215,6 +215,9 @@ class Benchmark(freq: TFreq) {
 
   override 
   def toString = {
+    val aboutWeekly  = aboutPeriodRate(weeklyProfits)
+    val aboutMonthly = aboutPeriodRate(monthlyProfits)
+    ;
     """
 ================ Benchmark Report ================
 Trade period           : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td in %3$s days
@@ -223,16 +226,19 @@ Final equity           : %5$.0f
 Total Return           : %6$.2f%%
 Annualized Return      : %7$.2f%% 
 Max Drawdown           : %8$.2f%%
-RRR                    : %9$.2f
-Sharpe Ratio on Weeks  : %10$.2f  (%11$s weeks)
-Sharpe Ratio on Months : %12$.2f  (%13$s months)
+RRR                    : %9$5.2f
+Sharpe Ratio on Weeks  : %10$5.2f  (%11$s weeks)
+Sharpe Ratio on Months : %12$5.2f  (%13$s months)
+
 ================ Weekly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
 %14$s
+Average: %15$ 6.2f%%  Stdev: %16$ 6.2f%% Win: %17$6.2f%%  Loss: %18$6.2f%%  Tie: %19$6.2f%%
 
 ================ Monthly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
-%15$s
+%20$s
+Average: %21$ 6.2f%%  Stdev: %22$ 6.2f%% Win: %23$6.2f%%  Loss: %24$6.2f%%  Tie: %25$6.2f%%
     """.format(
       tradeFromTime, tradeToTime, tradePeriod,
       initialEquity,
@@ -244,8 +250,43 @@ Date                  nav       acc-return   period-return       rf-return   sha
       sharpeRatioOnWeeks, weeklyProfits.length,
       sharpeRatioOnMonths, monthlyProfits.length,
       weeklyProfits.mkString("\n"),
-      monthlyProfits.mkString("\n")
+      aboutWeekly._1, aboutWeekly._2, aboutWeekly._3, aboutWeekly._4, aboutWeekly._5,
+      monthlyProfits.mkString("\n"),
+      aboutMonthly._1, aboutMonthly._2, aboutMonthly._3, aboutMonthly._4, aboutMonthly._5
     )
+  }
+  
+  private def aboutPeriodRate(profits: Array[Profit]) = {
+    val len = profits.length.toDouble
+    var sum = 0.0
+    var win = 0
+    var loss = 0
+    var tie = 0
+    var i = 0
+    while (i < len) {
+      val periodRate = profits(i).periodRate
+      sum += periodRate
+      if (periodRate > 0) win += 1 
+      else if (periodRate < 0) loss += 1 
+      else tie += 1
+      i += 1
+    }
+    
+    val average = if (len > 0) sum / len else 0.0
+    var devSum = 0.0
+    i = 0
+    while (i < len) {
+      val x = profits(i).periodRate - average
+      devSum += x * x
+      i += 1
+    }
+    val stdDev = math.sqrt(devSum / len)
+
+    if (len > 0) {
+      (average * 100, stdDev * 100, win / len * 100, loss / len * 100, tie / len * 100)
+    } else {
+      (0.0, 0.0, 0.0, 0.0, 0.0)
+    }
   }
   
   /**
