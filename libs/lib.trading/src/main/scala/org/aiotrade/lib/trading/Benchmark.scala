@@ -71,8 +71,8 @@ class Benchmark(freq: TFreq) {
     val navs = toNavs(initialEquity, equities)
     weeklyProfits = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
     monthlyProfits = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
-    sharpeRatioOnWeeks = 52 * calcSharpeRatio(weeklyProfits)
-    sharpeRatioOnMonths = 12 * calcSharpeRatio(monthlyProfits)
+    sharpeRatioOnWeeks = math.sqrt(52) * calcSharpeRatio(weeklyProfits)
+    sharpeRatioOnMonths = math.sqrt(12) * calcSharpeRatio(monthlyProfits)
     
     toString
   }
