@@ -92,11 +92,11 @@ class PaperBroker(val name: String) extends Broker {
                 
             case OrderType.Limit =>
               order.side match {
-                case OrderSide.Buy if execution.price <= order.price =>
+                case (OrderSide.Buy | OrderSide.SellShort) if execution.price <= order.price =>
                   deltas ::= OrderDelta.Updated(executor)
                   order.fill(execution.time, execution.price, execution.volume)
                     
-                case OrderSide.Sell if execution.price >= order.price => 
+                case (OrderSide.Sell | OrderSide.BuyCover) if execution.price >= order.price => 
                   deltas ::= new OrderDelta.Updated(executor)
                   order.fill(execution.time, execution.price, execution.volume)
 

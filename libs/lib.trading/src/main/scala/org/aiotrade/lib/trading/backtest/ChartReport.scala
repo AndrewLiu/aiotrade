@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Random
+import java.util.concurrent.CountDownLatch
 import java.util.logging.Level
 import java.util.logging.Logger
 import javafx.application.Platform
@@ -35,7 +36,10 @@ import scala.collection.mutable
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900) {
+class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, 
+                  upperBound: Int = 0, lowerBound: Int = 1000, 
+                  width: Int = 1200, height: Int = 900
+) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
@@ -54,39 +58,15 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
       }
     } else null
   }
-  private var imagesToSave = List[ChartTab]()
   
-  private val paramToChartTab = new mutable.HashMap[Param, ChartTab]()
+  private var imageSavingLatch: CountDownLatch = _
+  private var chartTabs = List[ChartTab]()
   
   private val frame = new JFrame()
   private val jfxPanel = new JFXPanel()
   private val tabPane = new TabPane()
   
   initAndShowGUI
-  
-  private val reactor = new Reactor {
-    reactions += {
-      case RoundStarted(param) =>
-        paramToChartTab(param) = new ChartTab(param)
-      case RoundFinished =>
-        imagesToSave = paramToChartTab.values.toList
-        paramToChartTab.clear
-        imagesToSave match {
-          case Nil =>
-          case x :: xs =>
-            imagesToSave = xs
-            x.roundFinished
-        }
-      case ImageSaved =>
-        imagesToSave match {
-          case Nil =>
-          case x :: xs =>
-            imagesToSave = xs
-            x.roundFinished
-        }
-        
-    }
-  }
   
   private def runInFXThread(block: => Unit) {
     Platform.runLater(new Runnable {
@@ -108,17 +88,35 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
     }
   }
   
-  def roundStarted(param: Param) {
-    reactor ! RoundStarted(param)
+  /**
+   * @param for each param in params, will create a new tabbed pane in main frame.
+   */
+  def roundStarted(params: List[Param]) {
+    if (imageSavingLatch != null) {
+      try {
+        imageSavingLatch.await
+      } catch {
+        case e: InterruptedException => e.printStackTrace
+      }
+    }
+    chartTabs = params map (new ChartTab(_))
+    Thread.sleep(1000) // wait for chartTab inited in FX thread
   }
   
   def roundFinished {
-    reactor ! RoundFinished
+    imageSavingLatch = new CountDownLatch(chartTabs.length)
+    Thread.sleep(2000) // wait for chart painted in FX thread
+    trySaveNextImage
   }
   
-  private case class RoundStarted(param: Param)
-  private case object RoundFinished
-  private case object ImageSaved
+  private def trySaveNextImage {
+    chartTabs match {
+      case Nil =>
+      case x :: xs =>
+        chartTabs = xs
+        x.roundFinished
+    }
+  }
   
   private class ChartTab(param: Param) extends Reactor {
     private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
@@ -147,9 +145,12 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
         val xAxis = new CategoryAxis()
         xAxis.setLabel("Time")
         val yAxis = new NumberAxis()
+        yAxis.setAutoRanging(isAutoRanging)
+        yAxis.setUpperBound(upperBound)
+        yAxis.setLowerBound(lowerBound)
       
         dataChart = new LineChart[String, Number](xAxis, yAxis)
-        dataChart.setTitle("Profit Monitoring - " + param.titleDescription)
+        dataChart.setTitle("Equity Monitoring - " + param.titleDescription)
         dataChart.setCreateSymbols(false)
         dataChart.setLegendVisible(false)
         dataChart.setPrefHeight(0.9 * height)
@@ -209,13 +210,14 @@ class ChartReport(imageFileDirStr: String, width: Int = 1200, height: Int = 900)
 
         val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
         var timer: Timer = null
-        timer = new Timer(1000, new ActionListener {
+        timer = new Timer(1500, new ActionListener {
             def actionPerformed(e: java.awt.event.ActionEvent) {
               ChartReport.saveImage(jfxPanel, file)
               tabPane.getTabs.remove(tab)
-              reactor ! ImageSaved
+              imageSavingLatch.countDown
+              trySaveNextImage
               timer.stop
-            }  
+            }
           }
         )
         timer.start
@@ -271,8 +273,7 @@ object ChartReport {
     // should hold chartReport instance, otherwise it may be GCed and cannot receive message. 
     val chartReport = new ChartReport(".")
     val params = List(TestParam(1), TestParam(2))
-    params foreach chartReport.roundStarted
-    Thread.sleep(1000) // wait for chartTabs inited in FX thread
+    chartReport.roundStarted(params)
     
     val random = new Random(System.currentTimeMillis)
     cal.add(Calendar.DAY_OF_YEAR, -10)
@@ -281,7 +282,6 @@ object ChartReport {
       params foreach {_.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))}
     }
     
-    Thread.sleep(1000) // wait for chartTab plotted in FX thread
     chartReport.roundFinished
   }
   

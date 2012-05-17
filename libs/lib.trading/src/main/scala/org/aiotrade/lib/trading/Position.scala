@@ -3,12 +3,12 @@ package org.aiotrade.lib.trading
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 
-class Position private (private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
-  def this() = this(Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
+class Position private (var _account: Account, private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
+  def this() = this(null, Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
 
   private var _subPositions: ArrayList[Position] = null
   private var _currentPrice = _price
-  private var _maxProfitRatio = 0.0
+  private var _maxGainLossRatio = 0.0
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
   
@@ -22,7 +22,6 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
         pos._sec = sec
         i += 1
       }
-    
     }
   }
   
@@ -41,20 +40,18 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
     _price = price
   }
   
-  def asset = _currentPrice * quantity
-  
   def currentPrice = _currentPrice
   
   def update(currentPrice: Double) {
     if (!currentPrice.isNaN) {
       _currentPrice = currentPrice
-      _maxProfitRatio = math.max(_maxProfitRatio, profitRatio)
+      _maxGainLossRatio = math.max(_maxGainLossRatio, gainLossRatio)
     }
   }
   
   def add(time: Long, quantity: Double, price: Double) {
     _subPositions = if (_subPositions == null) new ArrayList[Position]() else _subPositions
-    _subPositions += new Position(time, sec, quantity, price)
+    _subPositions += new Position(_account, time, sec, quantity, price)
     
     if (math.signum(quantity) == math.signum(_quantity) || math.signum(_quantity) == 0.0) {
       val total = _quantity * _price + quantity * price
@@ -71,16 +68,28 @@ class Position private (private var _time: Long, private var _sec: Sec, private 
   def isLong: Boolean = _quantity > 0
   def isShort: Boolean = _quantity < 0
   
+  def gainLoss = (_currentPrice - _price) * quantity 
+  def equity = signum * _currentPrice * quantity
+
   /**
-   * @todo, consider expense
+   * @todo, consider expenses?
    */
-  def profitRatio = if (_quantity == 0) 0 else if (isLong) (_currentPrice - _price) / _price else (_price - _currentPrice) / _price
-  def maxProfitRatio = _maxProfitRatio
+  def gainLossRatio = signum * (_currentPrice - _price) / _price
+  def maxGainLossRatio = _maxGainLossRatio
+  
+  private def signum = if (isLong) 1 else if (isShort) -1 else 0
+  
+  override 
+  def toString = {
+    "%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%, type=%s".format(
+      sec.uniSymbol, price, quantity, currentPrice, gainLoss, gainLossRatio * 100, if (isLong) "Long" else "Short"
+    )
+  }
 }
 
 object Position {
-  def apply(time: Long, sec: Sec, quantity: Double, price: Double) = new Position(time, sec, quantity, price)
-  def apply() = new Position(Long.MinValue, null, Double.NaN, Double.NaN)
+  def apply(account: Account, time: Long, sec: Sec, quantity: Double, price: Double) = new Position(account, time, sec, quantity, price)
+  def apply() = new Position(null, Long.MinValue, null, Double.NaN, Double.NaN)
 }
 
 trait PositionEvent {
