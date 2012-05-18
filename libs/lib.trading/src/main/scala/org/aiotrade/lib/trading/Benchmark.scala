@@ -168,7 +168,7 @@ class Benchmark(freq: TFreq) {
         val time = reportTimes(i)
         val nav = reportNavs(i)
         val accRate = nav - 1
-        val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else 0.0
+        val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else nav / 1.0 - 1
         profits += Profit(time, nav, accRate, periodRate, riskFreeRate)
         i += 1
       }
