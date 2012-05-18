@@ -233,12 +233,12 @@ Sharpe Ratio on Months : %12$5.2f  (%13$s months)
 ================ Weekly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
 %14$s
-Average: %15$ 6.2f%%  Stdev: %16$ 6.2f%% Win: %17$6.2f%%  Loss: %18$6.2f%%  Tie: %19$6.2f%%
+Average: %15$ 6.2f%%  Stdev: %16$ 6.2f%%  Win: %17$6.2f%%  Loss: %18$6.2f%%  Tie: %19$6.2f%%
 
 ================ Monthly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
 %20$s
-Average: %21$ 6.2f%%  Stdev: %22$ 6.2f%% Win: %23$6.2f%%  Loss: %24$6.2f%%  Tie: %25$6.2f%%
+Average: %21$ 6.2f%%  Stdev: %22$ 6.2f%%  Win: %23$6.2f%%  Loss: %24$6.2f%%  Tie: %25$6.2f%%
     """.format(
       tradeFromTime, tradeToTime, tradePeriod,
       initialEquity,
