@@ -1,5 +1,7 @@
 package org.aiotrade.lib.trading
 
+import java.text.SimpleDateFormat
+import java.util.Date
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.securities.model.Sec
@@ -30,8 +32,17 @@ class SecPicking extends Publisher {
     }
   }
   
-  def allSecs = secToValidTimes.keys
+  def allSecs = secToValidTimes.keySet
   
+  def at(times: Long*): Array[Sec] = {
+    val secs = new ArrayList[Sec]()
+    val itr = new IteratorAtTime(times: _*)
+    while (itr.hasNext) {
+      secs += itr.next
+    }
+    secs.toArray
+  }
+
   def go(time: Long) {
     var i = 0
     while (i < validTimes.length) {
@@ -104,6 +115,7 @@ class SecPicking extends Publisher {
     this
   }
   
+  def isInvalid(sec: Sec, time: Long) = !isValid(sec, time)
   def isValid(sec: Sec, time: Long): Boolean = {
     secToValidTimes.get(sec) match {
       case Some(xs) => xs.exists(_.isValid(time))
@@ -134,11 +146,26 @@ class SecPicking extends Publisher {
     acc
   }
   
-  final class IteratorAtTime(time: Long) extends Iterator[Sec] {
+  override 
+  def toString = {
+    val df = new SimpleDateFormat("yyyy-MM-dd")
+    val sb = new StringBuilder()
+    for {
+      (sec, validTimes) <- secToValidTimes
+      validTime <- validTimes
+    } {
+      val validFrom = if (validTime.validFrom == 0) "__________" else df.format(new Date(validTime.validFrom))
+      val validTo = if (validTime.validTo == 0) "----------" else df.format(new Date(validTime.validTo))
+      sb.append(validTime.ref.uniSymbol).append(": ").append(validFrom).append(" -> ").append(validTo).append("\n")
+    }
+    sb.toString
+  }
+  
+  final class IteratorAtTime(times: Long*) extends Iterator[Sec] {
     private var index = 0
       
     def hasNext = {
-      while (index < validTimes.length && validTimes(index).isValid(time)) {
+      while (index < validTimes.length && times.foldLeft(false){(s, x) => s || validTimes(index).isInvalid(x)}) {
         index += 1
       }
       index < validTimes.length
@@ -154,6 +181,7 @@ class SecPicking extends Publisher {
       }
     }
   }
+
 }
 
 object SecPicking {

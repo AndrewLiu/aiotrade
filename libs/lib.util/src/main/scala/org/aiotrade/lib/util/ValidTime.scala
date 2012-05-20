@@ -39,12 +39,13 @@ package org.aiotrade.lib.util
  * 
  * @author Caoyuan Deng
  */
-final case class ValidTime[+T](ref: T, validFrom: Long, validTo: Long) {
+final case class ValidTime[+T](ref: T, var validFrom: Long, var validTo: Long) {
+  def isInvalid(time: Long): Boolean = !isValid(time)
   def isValid(time: Long): Boolean = {
-    if (validFrom <= time && validTo == 0) true
-    else validFrom <= time && validTo > time
+    time >= validFrom && (validTo == 0 || time <= validTo)
   }
   
-  def isIn(prevTime: Long, time: Long): Boolean = !isValid(prevTime) && isValid(time)
-  def isOut(prevTime: Long, time: Long): Boolean = isValid(prevTime) && !isValid(time)
+
+  def isIn (prevTime: Long, time: Long): Boolean = isInvalid(prevTime) && isValid(time)
+  def isOut(prevTime: Long, time: Long): Boolean = isValid(prevTime) && isInvalid(time)
 }
