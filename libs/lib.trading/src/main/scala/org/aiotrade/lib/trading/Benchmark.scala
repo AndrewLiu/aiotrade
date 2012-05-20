@@ -220,27 +220,27 @@ class Benchmark(freq: TFreq) {
     ;
     """
 ================ Benchmark Report ================
-Trade period           : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td in %3$s days
-Initial equity         : %4$.0f
-Final equity           : %5$.0f  
-Total Return           : %6$.2f%%
-Annualized Return      : %7$.2f%% 
-Max Drawdown           : %8$.2f%%
-RRR                    : %9$5.2f
-Sharpe Ratio on Weeks  : %10$5.2f  (%11$s weeks)
-Sharpe Ratio on Months : %12$5.2f  (%13$s months)
+Trade period           : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td (%3$s calendar days, %4$s trading periods)
+Initial equity         : %5$.0f
+Final equity           : %6$.0f  
+Total Return           : %7$.2f%%
+Annualized Return      : %8$.2f%% 
+Max Drawdown           : %9$.2f%%
+RRR                    : %10$5.2f
+Sharpe Ratio on Weeks  : %11$5.2f  (%12$s weeks)
+Sharpe Ratio on Months : %13$5.2f  (%14$s months)
 
 ================ Weekly Return ================
-Date                  nav       acc-return   period-return       rf-return   sharpe-return
-%14$s
-Average: %15$ 6.2f%%  Stdev: %16$ 6.2f%%  Win: %17$6.2f%%  Loss: %18$6.2f%%  Tie: %19$6.2f%%
+Date                  nav       acc-return   period-return       riskfree    sharpe-return
+%15$s
+Average: %16$ 5.2f%%  Stdev: %17$ 5.2f%%  Win: %18$5.2f%%  Loss: %19$5.2f%%  Tie: %20$5.2f%%
 
 ================ Monthly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
-%20$s
-Average: %21$ 6.2f%%  Stdev: %22$ 6.2f%%  Win: %23$6.2f%%  Loss: %24$6.2f%%  Tie: %25$6.2f%%
+%21$s
+Average: %22$ 5.2f%%  Stdev: %23$ 5.2f%%  Win: %24$5.2f%%  Loss: %25$5.2f%%  Tie: %26$5.2f%%
     """.format(
-      tradeFromTime, tradeToTime, tradePeriod,
+      tradeFromTime, tradeToTime, tradePeriod, times.length,
       initialEquity,
       lastEquity,
       profitRatio * 100,
