@@ -15,17 +15,19 @@ import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.trading.Account
+import org.aiotrade.lib.trading.Benchmark
 import org.aiotrade.lib.trading.Broker
 import org.aiotrade.lib.trading.Order
 import org.aiotrade.lib.trading.OrderSide
+import org.aiotrade.lib.trading.OrderStatus
 import org.aiotrade.lib.trading.PaperBroker
+import org.aiotrade.lib.trading.Param
 import org.aiotrade.lib.trading.Position
 import org.aiotrade.lib.trading.SecPicking
 import org.aiotrade.lib.trading.SecPickingEvent
 import org.aiotrade.lib.trading.StockAccount
 import org.aiotrade.lib.trading.TradingRule
 import org.aiotrade.lib.util.ValidTime
-import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
 import scala.concurrent.SyncVar
 
@@ -35,10 +37,12 @@ case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
  * 
  * @author Caoyuan Deng
  */
-class TradingService(broker: Broker, val accounts: List[Account], param: Param, referSer: QuoteSer, 
+class TradingService(val broker: Broker, val accounts: List[Account], val param: Param, referSer: QuoteSer, 
                      secPicking: SecPicking, signalIndTemplates: SignalIndicator*
-) extends Publisher {
+) extends org.aiotrade.lib.trading.TradingService {
   protected val log = Logger.getLogger(this.getClass.getName)
+  
+  val benchmark = new Benchmark(this)
   
   private case class Go(fromTime: Long, toTime: Long)
   private val done = new SyncVar[Boolean]()
@@ -167,7 +171,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
       executeOrders
       updatePositionsPrice
       
-      // @todo process unfilled orders
+      checkOrderStatus
 
       report(i)
 
@@ -212,6 +216,20 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     }
   }
 
+  private def checkOrderStatus {
+    for {
+      accountToOrders <- List(openingOrders, closingOrders)
+      (account, orders) <- accountToOrders
+      order <- orders
+    } {
+      order.status match {
+        case OrderStatus.Partial | OrderStatus.New | OrderStatus.PendingNew => 
+          val pending = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.quantity - order.filledQuantity) price (Double.NaN) after (1)
+          addPendingOrder(pending)
+        case _ =>
+      }
+    }
+  }
   
   def report(idx: Int) {
     accounts foreach {account =>
@@ -221,8 +239,8 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     }
 
     val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
-    param.publish(ReportData("Total", 0, closeTime, equity / initialEquity * 100))
-    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / initialReferPrice * 100 - 100))
+    param.publish(ChartData("Total", 0, closeTime, equity / initialEquity * 100))
+    param.publish(ChartData("Refer", 0, closeTime, referSer.close(idx) / initialReferPrice * 100 - 100))
   }
   
   protected def checkStopCondition {
@@ -311,14 +329,14 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
           // closing
           val closingOrdersx = closingx flatMap {_ toOrder}
         
-          // pending
-          // @todo process unfilled orders from broker
-          pendingOrders = pendingOrders -- expired -- openingx -- closingx
+          // removing pending
+          val removingPendingOrders = expired ::: openingx ::: closingx
         
-          (account, openingOrdersx, closingOrdersx)
-      } foreach {case (account, openingOrdersx, closingOrdersx) =>
+          (account, openingOrdersx, closingOrdersx, removingPendingOrders)
+      } foreach {case (account, openingOrdersx, closingOrdersx, removingPendingOrders) =>
           openingOrders += account -> openingOrdersx
           closingOrders += account -> closingOrdersx
+          pendingOrders = pendingOrders -- removingPendingOrders
       }
     } // end if
   }

@@ -29,6 +29,7 @@ import javax.imageio.ImageIO
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.Timer
+import org.aiotrade.lib.trading.Param
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
 
@@ -133,7 +134,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
     initAndShowGUI
   
     reactions += {
-      case data: ReportData => 
+      case data: ChartData => 
         updateData(data)
     }
     listenTo(param)
@@ -179,7 +180,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
       }
     }
   
-    private def updateData(data: ReportData) {
+    private def updateData(data: ChartData) {
       // should run in FX application thread
       runInFXThread {
         val id = data.name + data.id
@@ -279,7 +280,7 @@ object ChartReport {
     cal.add(Calendar.DAY_OF_YEAR, -10)
     for (i <- 1 to 10) {
       cal.add(Calendar.DAY_OF_YEAR, i)
-      params foreach {_.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))}
+      params foreach {_.publish(ChartData("series", 0, cal.getTimeInMillis, random.nextDouble))}
     }
     
     chartReport.roundFinished
@@ -287,3 +288,5 @@ object ChartReport {
   
   private case class TestParam(v: Int) extends Param
 }
+
+case class ChartData(name: String, id: Int, time: Long, value: Double)

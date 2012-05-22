@@ -3,13 +3,12 @@ package org.aiotrade.lib.trading
 import java.util.Calendar
 import java.util.Date
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.TFreq
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class Benchmark(freq: TFreq) {
+class Benchmark(tradingService: TradingService) {
   case class Profit(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
@@ -29,7 +28,7 @@ class Benchmark(freq: TFreq) {
   var times = new ArrayList[Long]
   var equities = new ArrayList[Double]()
   
-  var initialEquity = Double.NaN
+  var initialEquity = tradingService.accounts.foldLeft(0.0){(s, x) => s + x.initialEquity}
   var profitRatio = 0.0
   var annualizedProfitRatio = 0.0
   private var lastEquity = 0.0
@@ -219,28 +218,28 @@ class Benchmark(freq: TFreq) {
     val statMonthly = calcStatistics(monthlyProfits)
     ;
     """
-================ Benchmark Report ================
-Trade period           : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td (%3$s calendar days, %4$s trading periods)
-Initial equity         : %5$.0f
-Final equity           : %6$.0f  
-Total Return           : %7$.2f%%
-Annualized Return      : %8$.2f%% 
-Max Drawdown           : %9$.2f%%
-RRR                    : %10$5.2f
-Sharpe Ratio on Weeks  : %11$5.2f  (%12$s weeks)
-Sharpe Ratio on Months : %13$5.2f  (%14$s months)
+================ Benchmark Report -- %1$s ================
+Trade period           : %2$tY.%2$tm.%2$td --- %3$tY.%3$tm.%3$td (%4$s calendar days, %5$s trading periods)
+Initial equity         : %6$.0f
+Final equity           : %7$.0f  
+Total Return           : %8$.2f%%
+Annualized Return      : %9$.2f%% 
+Max Drawdown           : %10$.2f%%
+RRR                    : %11$5.2f
+Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
+Sharpe Ratio on Months : %14$5.2f  (%15$s months)
 
 ================ Weekly Return ================
 Date                  nav       acc-return   period-return       riskfree    sharpe-return
-%15$s
-Average: %16$ 5.2f%%  Stdev: %17$ 5.2f%%  Win: %18$5.2f%%  Loss: %19$5.2f%%  Tie: %20$5.2f%%
-Average:%16$ 5.2f%%  Max:%17$ 5.2f%%  Min:%18$ 5.2f%%  Stdev:%19$ 5.2f%%  Win:%20$5.2f%%  Loss:%21$5.2f%%  Tie:%22$5.2f%%
+%16$s
+Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$ 5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
 
 ================ Monthly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
-%23$s
-Average:%24$ 5.2f%%  Max:%25$ 5.2f%%  Min:%26$ 5.2f%%  Stdev:%27$ 5.2f%%  Win:%28$5.2f%%  Loss:%29$5.2f%%  Tie:%30$5.2f%%
+%24$s
+Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$ 5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
     """.format(
+      tradingService.param,
       tradeFromTime, tradeToTime, tradePeriod, times.length,
       initialEquity,
       lastEquity,
