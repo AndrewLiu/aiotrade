@@ -25,12 +25,20 @@ class TradingRule {
   }
   
   def buyQuantityRule(quote: Quote, price: Double, funds: Double): Int = {
-    val quantity = maxQuantity(quote.volume, price, funds)
-    roundQuantity(quantity)
+    if (isTradable(quote)) {
+      val quantity = maxQuantity(quote.volume, price, funds)
+      roundQuantity(quantity)
+    } else {
+      0
+    }
   }
   
   def sellQuantityRule(quote: Quote, price: Double, quantity: Double): Int = {
-    math.min(quantity, quote.volume * quantityPerLot * tradableProportionOfVolume).toInt
+    if (isTradable(quote)) {
+      math.min(quantity, quote.volume * quantityPerLot * tradableProportionOfVolume).toInt
+    } else {
+      0
+    }
   }
 
   def cutLossRule(position: Position): Boolean = {
@@ -43,6 +51,10 @@ class TradingRule {
 
   // -- helper
   
+  protected def isTradable(quote: Quote): Boolean = {
+    !(quote.open == quote.close && quote.open == quote.high && quote.open == quote.low)
+  }
+
   protected def maxQuantity(volume: Double, price: Double, funds: Double) = {
     math.min(funds / (price * multiplier * marginRate), volume * quantityPerLot * tradableProportionOfVolume)
   }

@@ -215,8 +215,8 @@ class Benchmark(freq: TFreq) {
 
   override 
   def toString = {
-    val aboutWeekly  = aboutPeriodRate(weeklyProfits)
-    val aboutMonthly = aboutPeriodRate(monthlyProfits)
+    val statWeekly  = calcStatistics(weeklyProfits)
+    val statMonthly = calcStatistics(monthlyProfits)
     ;
     """
 ================ Benchmark Report ================
@@ -234,11 +234,12 @@ Sharpe Ratio on Months : %13$5.2f  (%14$s months)
 Date                  nav       acc-return   period-return       riskfree    sharpe-return
 %15$s
 Average: %16$ 5.2f%%  Stdev: %17$ 5.2f%%  Win: %18$5.2f%%  Loss: %19$5.2f%%  Tie: %20$5.2f%%
+Average:%16$ 5.2f%%  Max:%17$ 5.2f%%  Min:%18$ 5.2f%%  Stdev:%19$ 5.2f%%  Win:%20$5.2f%%  Loss:%21$5.2f%%  Tie:%22$5.2f%%
 
 ================ Monthly Return ================
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
-%21$s
-Average: %22$ 5.2f%%  Stdev: %23$ 5.2f%%  Win: %24$5.2f%%  Loss: %25$5.2f%%  Tie: %26$5.2f%%
+%23$s
+Average:%24$ 5.2f%%  Max:%25$ 5.2f%%  Min:%26$ 5.2f%%  Stdev:%27$ 5.2f%%  Win:%28$5.2f%%  Loss:%29$5.2f%%  Tie:%30$5.2f%%
     """.format(
       tradeFromTime, tradeToTime, tradePeriod, times.length,
       initialEquity,
@@ -250,15 +251,17 @@ Average: %22$ 5.2f%%  Stdev: %23$ 5.2f%%  Win: %24$5.2f%%  Loss: %25$5.2f%%  Tie
       sharpeRatioOnWeeks, weeklyProfits.length,
       sharpeRatioOnMonths, monthlyProfits.length,
       weeklyProfits.mkString("\n"),
-      aboutWeekly._1, aboutWeekly._2, aboutWeekly._3, aboutWeekly._4, aboutWeekly._5,
+      statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
       monthlyProfits.mkString("\n"),
-      aboutMonthly._1, aboutMonthly._2, aboutMonthly._3, aboutMonthly._4, aboutMonthly._5
+      statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7
     )
   }
   
-  private def aboutPeriodRate(profits: Array[Profit]) = {
+  private def calcStatistics(profits: Array[Profit]) = {
     val len = profits.length.toDouble
     var sum = 0.0
+    var max = Double.MinValue
+    var min = Double.MaxValue
     var win = 0
     var loss = 0
     var tie = 0
@@ -266,6 +269,8 @@ Average: %22$ 5.2f%%  Stdev: %23$ 5.2f%%  Win: %24$5.2f%%  Loss: %25$5.2f%%  Tie
     while (i < len) {
       val periodRate = profits(i).periodRate
       sum += periodRate
+      max = math.max(max, periodRate)
+      min = math.min(min, periodRate)
       if (periodRate > 0) win += 1 
       else if (periodRate < 0) loss += 1 
       else tie += 1
@@ -283,9 +288,9 @@ Average: %22$ 5.2f%%  Stdev: %23$ 5.2f%%  Win: %24$5.2f%%  Loss: %25$5.2f%%  Tie
     val stdDev = math.sqrt(devSum / len)
 
     if (len > 0) {
-      (average * 100, stdDev * 100, win / len * 100, loss / len * 100, tie / len * 100)
+      (average * 100, max * 100, min * 100, stdDev * 100, win / len * 100, loss / len * 100, tie / len * 100)
     } else {
-      (0.0, 0.0, 0.0, 0.0, 0.0)
+      (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     }
   }
   
