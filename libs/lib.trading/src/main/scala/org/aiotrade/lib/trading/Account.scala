@@ -14,7 +14,7 @@ abstract class Account(val description: String, protected var _balance: Double, 
   
   val id = UUID.randomUUID.getMostSignificantBits
   
-  protected val _transactions = new ArrayList[Transaction]()
+  protected val _transactions = new ArrayList[TradeTransaction]()
   protected val _secToPosition = new mutable.HashMap[Sec, Position]()
   
   val initialEquity = _balance
@@ -30,7 +30,7 @@ abstract class Account(val description: String, protected var _balance: Double, 
   def equity: Double
   def availableFunds: Double
   def calcFundsToOpen(quantity: Double, price: Double): Double
-  def processFilledOrder(time: Long, order: Order)
+  def processFillingOrder(time: Long, order: Order)
 }
 
 class StockAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
@@ -48,7 +48,7 @@ class StockAccount($description: String, $balance: Double, $tradingRule: Trading
     tradingRule.expenseScheme.getOpeningExpenses(quantity, price)
   }
   
-  def processFilledOrder(time: Long, order: Order) {
+  def processFillingOrder(time: Long, order: Order) {
     val expenses = order.side match {
       case OrderSide.Buy | OrderSide.SellShort => 
         tradingRule.expenseScheme.getOpeningExpenses(order.filledQuantity, order.averagePrice)
@@ -57,8 +57,8 @@ class StockAccount($description: String, $balance: Double, $tradingRule: Trading
       case _ => 0.0
     }
     
-    val expenseTransaction = ExpenseTransaction(time, expenses)
-    val transaction = TradeTransaction(time, order, order.transactions, if (expenses != 0.0) expenseTransaction else null)
+    val expensesTransaction = ExpensesTransaction(time, expenses)
+    val transaction = TradeTransaction(time, order, order.transactions, if (expenses != 0.0) expensesTransaction else null)
     _transactions += transaction
     
     _balance -= transaction.amount
@@ -110,7 +110,7 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
     tradingRule.expenseScheme.getOpeningExpenses(quantity, price * tradingRule.multiplier)
   }
   
-  def processFilledOrder(time: Long, order: Order) {
+  def processFillingOrder(time: Long, order: Order) {
     val expenses = order.side match {
       case OrderSide.Buy | OrderSide.SellShort => 
         tradingRule.expenseScheme.getOpeningExpenses(order.filledQuantity, order.averagePrice)
@@ -119,11 +119,11 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
       case _ => 0.0
     }
     
-    val expenseTransaction = ExpenseTransaction(time, expenses)
-    val transaction = TradeTransaction(time, order, order.transactions, if (expenses != 0.0) expenseTransaction else null)
+    val expensesTransaction = ExpensesTransaction(time, expenses)
+    val transaction = TradeTransaction(time, order, order.transactions, if (expenses != 0.0) expensesTransaction else null)
     _transactions += transaction
     
-    _balance -= expenseTransaction.amount
+    _balance -= expensesTransaction.amount
 
     val quantity = order.side match {
       case OrderSide.Sell | OrderSide.SellShort => -order.filledQuantity 

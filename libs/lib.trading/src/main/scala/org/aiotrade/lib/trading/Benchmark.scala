@@ -3,12 +3,13 @@ package org.aiotrade.lib.trading
 import java.util.Calendar
 import java.util.Date
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.util.actors.Reactor
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class Benchmark(tradingService: TradingService) {
+class Benchmark(tradingService: TradingService) extends Reactor {
   case class Profit(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
@@ -20,14 +21,6 @@ class Benchmark(tradingService: TradingService) {
     }
   }
   
-  var tradeCount: Int = _
-  var tradeFromTime: Long = Long.MinValue
-  var tradeToTime: Long = Long.MinValue
-  var tradePeriod: Int = _
-  
-  var times = new ArrayList[Long]
-  var equities = new ArrayList[Double]()
-  
   var initialEquity = tradingService.accounts.foldLeft(0.0){(s, x) => s + x.initialEquity}
   var profitRatio = 0.0
   var annualizedProfitRatio = 0.0
@@ -36,11 +29,21 @@ class Benchmark(tradingService: TradingService) {
   private var maxDrawdownEquity = Double.MaxValue
   var maxDrawdownRatio = Double.MinValue
   
+  var tradeCount: Int = _
+  var tradeFromTime: Long = Long.MinValue
+  var tradeToTime: Long = Long.MinValue
+  var tradePeriod: Int = _
+  
+  val times = new ArrayList[Long]
+  val equities = new ArrayList[Double]()
+  private var secTransactions = Array[SecurityTransaction]()
+  private var expTransactions = Array[ExpensesTransaction]()
+  
   var weeklyProfits: Array[Profit] = Array()
   var monthlyProfits: Array[Profit] = Array()
   var rrr: Double = _
-  var sharpeRatioOnWeeks: Double = _
-  var sharpeRatioOnMonths: Double = _
+  var sharpeRatioOnWeek: Double = _
+  var sharpeRatioOnMonth: Double = _
   
   var weeklyRiskFreeRate = 0.0 // 0.003
   var monthlyRiskFreeRate = 0.0 // 0.003
@@ -70,8 +73,12 @@ class Benchmark(tradingService: TradingService) {
     val navs = toNavs(initialEquity, equities)
     weeklyProfits = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
     monthlyProfits = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
-    sharpeRatioOnWeeks = math.sqrt(52) * calcSharpeRatio(weeklyProfits)
-    sharpeRatioOnMonths = math.sqrt(12) * calcSharpeRatio(monthlyProfits)
+    sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyProfits)
+    sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyProfits)
+    
+    val transactions = collectTransactions
+    secTransactions = transactions._1
+    expTransactions = transactions._2
     
     toString
   }
@@ -211,6 +218,21 @@ class Benchmark(tradingService: TradingService) {
     now.set(Calendar.DAY_OF_MONTH, reportDayOfMonth)
     now.getTimeInMillis
   }
+  
+  
+  private def collectTransactions = {
+    val secTransactions = new ArrayList[SecurityTransaction]()
+    val expTransactions = new ArrayList[ExpensesTransaction]()
+    for {
+      account <- tradingService.accounts
+      TradeTransaction(time, order, chunk, expenses) <- account.transactions
+    } {
+      secTransactions ++= chunk
+      expTransactions += expenses
+    }
+    (secTransactions.toArray, expTransactions.toArray)
+  }
+
 
   override 
   def toString = {
@@ -238,6 +260,10 @@ Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$ 5.2f%%  Win:%2
 Date                  nav       acc-return   period-return       rf-return   sharpe-return
 %24$s
 Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$ 5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
+    
+================ Executions ================
+Date              sec           quantity     price
+%32$s
     """.format(
       tradingService.param,
       tradeFromTime, tradeToTime, tradePeriod, times.length,
@@ -247,12 +273,13 @@ Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$ 5.2f%%  Win:%2
       annualizedProfitRatio * 100,
       maxDrawdownRatio * 100,
       rrr,
-      sharpeRatioOnWeeks, weeklyProfits.length,
-      sharpeRatioOnMonths, monthlyProfits.length,
+      sharpeRatioOnWeek, weeklyProfits.length,
+      sharpeRatioOnMonth, monthlyProfits.length,
       weeklyProfits.mkString("\n"),
       statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
       monthlyProfits.mkString("\n"),
-      statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7
+      statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
+      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$ 8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price)) mkString ("\n")
     )
   }
   
