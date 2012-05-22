@@ -188,6 +188,57 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     org.aiotrade.lib.math.indicator.Function.releaseAll
   }
   
+  private def executeOrders {
+    // sell first?. If so, how about the returning funds?
+    openingOrders flatMap (_._2) map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoProcessTrade(orderExecutor.order)
+    }
+
+    closingOrders flatMap (_._2) map broker.prepareOrder foreach {orderExecutor => 
+      orderExecutor.submit
+      pseudoProcessTrade(orderExecutor.order)
+    }    
+  }
+ 
+  private def updatePositionsPrice {
+    for {
+      account <- accounts
+      (sec, position) <- account.positions
+      ser <- sec.serOf(freq)
+      idx = ser.indexOfOccurredTime(closeTime) if idx >= 0
+    } {
+      position.update(ser.close(idx))
+    }
+  }
+
+  
+  def report(idx: Int) {
+    accounts foreach {account =>
+      log.info("%1$tY.%1$tm.%1$td: %2$s, opening=%3$s, closing=%4$s，pending=%5$s".format(
+          new Date(closeTime), account, openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size, pendingOrders.size)
+      )
+    }
+
+    val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
+    param.publish(ReportData("Total", 0, closeTime, equity / initialEquity * 100))
+    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / initialReferPrice * 100 - 100))
+  }
+  
+  protected def checkStopCondition {
+    for {
+      account <- accounts
+      (sec, position) <- account.positions
+    } {
+      if (account.tradingRule.cutLossRule(position)) {
+        triggers += Trigger(sec, position, closeTime, Side.CutLoss)
+      }
+      if (account.tradingRule.takeProfitRule(position)) {
+        triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
+      }
+    }
+  }
+  
   /**
    * At close of period idx, define the trading action for next period. 
    * @Note Override this method for your action.
@@ -212,43 +263,6 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
     }
   }
   
-  def report(idx: Int) {
-    accounts foreach {account =>
-      log.info("%1$tY.%1$tm.%1$td: %2$s, bought=%3$s, sold=%4$s".format(
-          new Date(closeTime), account, openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size)
-      )
-    }
-
-    val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
-    param.publish(ReportData("Total", 0, closeTime, equity / initialEquity * 100))
-    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / initialReferPrice * 100 - 100))
-  }
-  
-  protected def checkStopCondition {
-    for {
-      account <- accounts
-      (sec, position) <- account.positions
-    } {
-      if (account.tradingRule.cutLossRule(position)) {
-        triggers += Trigger(sec, position, closeTime, Side.CutLoss)
-      }
-      if (account.tradingRule.takeProfitRule(position)) {
-        triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
-      }
-    }
-  }
-
-  private def updatePositionsPrice {
-    for {
-      account <- accounts
-      (sec, position) <- account.positions
-      ser <- sec.serOf(freq)
-      idx = ser.indexOfOccurredTime(closeTime) if idx >= 0
-    } {
-      position.update(ser.close(idx))
-    }
-  }
-
   private def processPendingOrders {
     val orderSubmitReferIdx = closeReferIdx + 1 // next trading day
     if (orderSubmitReferIdx < timestamps.length) {
@@ -271,7 +285,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
                 }
               } else {
                 order.side match {
-                  case OrderSide.Buy | OrderSide.SellShort => order after (1) // pending 1 day?
+                  case OrderSide.Buy | OrderSide.SellShort => order after (1) // pending 1 day
                   case OrderSide.Sell | OrderSide.BuyCover => order after (1) // pending 1 day
                   case _ =>
                 }
@@ -302,9 +316,9 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
           pendingOrders = pendingOrders -- expired -- openingx -- closingx
         
           (account, openingOrdersx, closingOrdersx)
-      } foreach {case (account, buyingOrdersx, sellingOrdersx) =>
-          openingOrders += account -> buyingOrdersx
-          closingOrders += account -> sellingOrdersx
+      } foreach {case (account, openingOrdersx, closingOrdersx) =>
+          openingOrders += account -> openingOrdersx
+          closingOrders += account -> closingOrdersx
       }
     } // end if
   }
@@ -329,20 +343,7 @@ class TradingService(broker: Broker, val accounts: List[Account], param: Param, 
   private def calcTotalFundsToOpen(account: Account, orders: List[Order]) = {
     orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.quantity, x.price)}
   }
-  
-  private def executeOrders {
-    // sell first?. If so, how about the returning funds?
-    openingOrders flatMap (_._2) map broker.prepareOrder foreach {orderExecutor => 
-      orderExecutor.submit
-      pseudoProcessTrade(orderExecutor.order)
-    }
-
-    closingOrders flatMap (_._2) map broker.prepareOrder foreach {orderExecutor => 
-      orderExecutor.submit
-      pseudoProcessTrade(orderExecutor.order)
-    }    
-  }
-  
+   
   private def pseudoProcessTrade(order: Order) {
     val execution = new Execution
     execution.sec = order.sec
