@@ -268,21 +268,21 @@ Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
 Sharpe Ratio on Months : %14$5.2f  (%15$s months)
 
 ================ Weekly Return ================
-Date                      nav       acc-return   period-return       riskfree    sharpe-return
+date                  nav        accum      period    riskfree      sharpe
 %16$s
 Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
 
 ================ Monthly Return ================
-Date                      nav       acc-return   period-return       rf-return   sharpe-return
+date                  nav        accum      period    riskfree      sharpe
 %24$s
 Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
     
 ================ Margin Call ================
-Date           avaliableFunds         equity   positionEquity  positionMargin
+date           avaliableFunds           equity  positionEquity positionMargin
 %32$s
 
 ================ Executions ================
-Date                  sec           quantity     price     amount
+date            sec      quantity       price        amount
 %33$s
     """.format(
       tradingService.param,
