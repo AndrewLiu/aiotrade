@@ -4,6 +4,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
@@ -51,9 +52,9 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
 
   protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
   protected val triggers = new mutable.HashSet[Trigger]()
-  protected var openingOrders = Map[Account, List[Order]]() // orders to open position
-  protected var closingOrders = Map[Account, List[Order]]() // orders to close position
-  protected var pendingOrders = List[OrderCompose]()
+  protected val openingOrders = new mutable.HashMap[Account, List[Order]]() // orders to open position
+  protected val closingOrders = new mutable.HashMap[Account, List[Order]]() // orders to close position
+  protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
   protected var fromTime: Long = _
   protected var toTime: Long = _
@@ -140,7 +141,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   }
   
   private def addPendingOrder(order: OrderCompose) = {
-    pendingOrders ::= order
+    pendingOrders += order
     order
   }
 
@@ -300,15 +301,15 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     if (orderSubmitReferIdx < timestamps.length) {
       val orderSubmitReferTime = timestamps(orderSubmitReferIdx)
 
-      var pendingOrdersToRemove = List[OrderCompose]()
+      val pendingOrdersToRemove = new mutable.HashSet[OrderCompose]()
       // we should group pending orders here, since orderCompose.order may be set after created
       pendingOrders groupBy (_.account) map {case (account, orders) =>
-          var expired = List[OrderCompose]()
-          var opening = new mutable.HashMap[Sec, OrderCompose]()
-          var closing = new mutable.HashMap[Sec, OrderCompose]()
+          val expired = new mutable.HashSet[OrderCompose]()
+          val opening = new mutable.HashMap[Sec, OrderCompose]()
+          val closing = new mutable.HashMap[Sec, OrderCompose]()
           for (order <- orders) {
             if (order.referIndex < orderSubmitReferIdx) {
-              expired ::= order
+              expired += order
             } else if (order.referIndex == orderSubmitReferIdx) { 
               if (order.ser.exists(orderSubmitReferTime)) {
                 order.side match {
@@ -318,9 +319,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
                 }
               } else {
                 order.side match {
-                  // @Note if we want to pend buy order, we should count it in opening, otherwise the funds may has used out in next steps.
-                  case OrderSide.Buy | OrderSide.SellShort => expired ::= order // drop this orderCompose
-                  case OrderSide.Sell | OrderSide.BuyCover => order after (1) // pending 1 day
+                  // @Note if we want to pend buying order, we should count it in opening, 
+                  // otherwise the funds may has used out during following steps.
+                  case OrderSide.Buy | OrderSide.SellShort => expired += order // drop this orderCompose
+                  case OrderSide.Sell | OrderSide.BuyCover => order after (1)   // pend 1 day
                   case _ =>
                 }
               }
@@ -346,23 +348,26 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           val closingOrdersx = closingx flatMap {_ toOrder}
         
           // pending to remove
-          pendingOrdersToRemove = pendingOrdersToRemove ::: expired ::: openingx ::: closingx
+          pendingOrdersToRemove ++= expired 
+          pendingOrdersToRemove ++= openingx
+          pendingOrdersToRemove ++= closingx
         
           (account, openingOrdersx, closingOrdersx)
       } foreach {case (account, openingOrdersx, closingOrdersx) =>
-          openingOrders += account -> openingOrdersx
-          closingOrders += account -> closingOrdersx
+          openingOrders(account) = openingOrdersx
+          closingOrders(account) = closingOrdersx
       }
       
-      pendingOrders = pendingOrders -- pendingOrdersToRemove
+      pendingOrders --= pendingOrdersToRemove
     } // end if
   }
   
   /** 
    * Adjust orders for expenses etc, by reducing quantities (or number of orders @todo)
+   * @Note Iterable has no method of sortBy, that why use List here instead of Set etc
    */
   private def adjustOpeningOrders(account: Account, openingOrders: List[Order]) {
-    var orders = openingOrders.sortBy(_.price)
+    var orders = openingOrders.sortBy(_.price) 
     var amount = 0.0
     while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
       orders match {
