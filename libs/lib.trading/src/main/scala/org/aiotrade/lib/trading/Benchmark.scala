@@ -15,8 +15,17 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     
     override 
     def toString = {
-      "%1$tY.%1$tm.%1$td \t %2$ 8.2f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
+      "%1$tY.%1$tm.%1$td \t\t %2$ 8.2f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
         new Date(time), nav, accRate * 100, periodRate * 100, riskFreeRate * 100, periodRateForSharpe * 100
+      )
+    }
+  }
+  
+  case class MarginCall(time: Long, availableFunds: Double, equity: Double, positionEquity: Double, positionMagin: Double) {
+    override 
+    def toString = {
+      "%1$tY.%1$tm.%1$td \t\t %2$ 8.2f \t %3$ 8.2f \t %4$ 8.2f \t %5$ 8.2f".format(
+        new Date(time), availableFunds, equity, positionEquity, positionMagin
       )
     }
   }
@@ -36,6 +45,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   val times = new ArrayList[Long]
   val equities = new ArrayList[Double]()
+  private val marginCalls = ArrayList[MarginCall]
   private var secTransactions = Array[SecurityTransaction]()
   private var expTransactions = Array[ExpensesTransaction]()
   
@@ -62,6 +72,12 @@ class Benchmark(tradingService: TradingService) extends Reactor {
 
     lastEquity = equity
     profitRatio = equity / initialEquity - 1
+    
+    tradingService.accounts foreach {
+      case x: FutureAccount if x.availableFunds < 0 =>
+        marginCalls += MarginCall(time, x.availableFunds, x.equity, x.positionEquity, x.positionMargin)
+      case _ =>
+    }
     calcMaxDropdown(equity)
   }
   
@@ -252,18 +268,22 @@ Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
 Sharpe Ratio on Months : %14$5.2f  (%15$s months)
 
 ================ Weekly Return ================
-Date                  nav       acc-return   period-return       riskfree    sharpe-return
+Date                      nav       acc-return   period-return       riskfree    sharpe-return
 %16$s
-Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$ 5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
+Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
 
 ================ Monthly Return ================
-Date                  nav       acc-return   period-return       rf-return   sharpe-return
+Date                      nav       acc-return   period-return       rf-return   sharpe-return
 %24$s
-Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$ 5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
+Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
     
-================ Executions ================
-Date              sec           quantity     price
+================ Margin Call ================
+Date           avaliableFunds         equity   positionEquity  positionMargin
 %32$s
+
+================ Executions ================
+Date                  sec           quantity     price     amount
+%33$s
     """.format(
       tradingService.param,
       tradeFromTime, tradeToTime, tradePeriod, times.length,
@@ -279,7 +299,8 @@ Date              sec           quantity     price
       statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
       monthlyProfits.mkString("\n"),
       statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
-      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$ 8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price)) mkString ("\n")
+      marginCalls.mkString("\n"),
+      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
     )
   }
   
