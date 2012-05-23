@@ -79,11 +79,13 @@ class PaperBroker(val name: String) extends Broker {
     publish(OrderDeltasEvent(this, Array(OrderDelta.Updated(order))))
   }  
 
+  def isAllowOrderModify = false
   @throws(classOf[BrokerException])
   def modify(order: Order) {
     throw BrokerException("Modify not allowed", null)
   }
   
+
   def canTrade(sec: Sec) = {
     true
   }

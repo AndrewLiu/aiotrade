@@ -4,7 +4,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
@@ -175,8 +174,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
 
       report(i)
 
-      // -- todays ordered processed, now begin to check new conditions and 
-      // -- prepare new orders according to today's close status.
+      // today's orders processed, now begin to check new conditions and 
+      // prepare new orders according to today's close status.
       
       secPicking.go(closeTime)
       checkStopCondition
@@ -227,8 +226,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       order <- orders
     } {
       order.status match {
-        case (OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial) if order.remainQuantity != 0 => 
-          log.info("Unfinished order: " + order)
+        case (OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial) => 
+          log.info("Unfinished order (will retry): " + order)
           val retry = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.remainQuantity) after (1) using(order.account)
           println("Retry order due to %s: %s".format(order.status, retry))
           addPendingOrder(retry)
@@ -303,7 +302,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
 
       val pendingOrdersToRemove = new mutable.HashSet[OrderCompose]()
       // we should group pending orders here, since orderCompose.order may be set after created
-      pendingOrders groupBy (_.account) map {case (account, orders) =>
+      val newOpenCloseOrders = pendingOrders groupBy (_.account) map {case (account, orders) =>
           val expired = new mutable.HashSet[OrderCompose]()
           val opening = new mutable.HashMap[Sec, OrderCompose]()
           val closing = new mutable.HashMap[Sec, OrderCompose]()
@@ -343,7 +342,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           val estimateFundsPerSec = (account.availableFunds - assignedFunds) / noFunds.size
           val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap (_.toOrder)
           adjustOpeningOrders(account, openingOrdersx)
-        
+
           // closing
           val closingOrdersx = closingx flatMap {_ toOrder}
         
@@ -352,12 +351,18 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           pendingOrdersToRemove ++= openingx
           pendingOrdersToRemove ++= closingx
         
-          (account, openingOrdersx, closingOrdersx)
-      } foreach {case (account, openingOrdersx, closingOrdersx) =>
-          openingOrders(account) = openingOrdersx
-          closingOrders(account) = closingOrdersx
+          account -> (openingOrdersx, closingOrdersx)
       }
       
+      // We should iterate through each account of accounts instead of account in newOpenCloseOrders 
+      // to make sure orders of each account are updated. 
+      // @Note newOpenCloseOrders may be empty
+      for (account <- accounts) {
+        val (openingOrdersx, closingOrdersx) = newOpenCloseOrders.getOrElse(account, (Nil, Nil))
+        openingOrders(account) = openingOrdersx
+        closingOrders(account) = closingOrdersx
+      }
+
       pendingOrders --= pendingOrdersToRemove
     } // end if
   }

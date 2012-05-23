@@ -26,6 +26,7 @@ trait Broker extends Publisher {
 
   @throws(classOf[BrokerException])
   def modify(order: Order): Unit
+  def isAllowOrderModify: Boolean
   
   def allowedTypes: List[OrderType]
   def allowedSides: List[OrderSide]
