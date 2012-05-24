@@ -23,7 +23,7 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
   private var _filledQuantity: Double = _
   private var _averagePrice: Double = _
   private var _message: String = _
-  private var _transactions = new ArrayList[Transaction]()
+  private var _transactions = new ArrayList[SecurityTransaction]()
   
   def id = _id
   def id_=(id: Long) {
@@ -59,8 +59,8 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
   
   def status = _status
   def status_=(status: OrderStatus) {
-    val oldValue = _status
     if (_status != status) {
+      val oldValue = _status
       _status = status
       publish(OrderEvent.StatusChanged(this, oldValue, status))
       if (status == OrderStatus.Filled) {
@@ -69,6 +69,7 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
     }
   }
 
+  def remainQuantity = quantity - _filledQuantity
   def filledQuantity = _filledQuantity
   def filledQuantity_=(filledQuantity: Double) {
     val oldValue = _filledQuantity
@@ -77,7 +78,7 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
       publish(OrderEvent.FilledQuantityChanged(this, oldValue, filledQuantity))
     }
   }
-  
+
   def averagePrice = _averagePrice
   def averagePrice_=(averagePrice: Double) {
     val oldValue = _averagePrice
@@ -95,9 +96,7 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
   def transactions = _transactions.toArray
   
   def fill(time: Long, price: Double, size: Double) {
-    val remainQuantity = quantity - _filledQuantity
-    val executedQuantity = remainQuantity // math.min(size, remainQuantity)
-    
+    val executedQuantity = math.min(size, remainQuantity)
     if (executedQuantity > 0) {
       var oldTotalAmount = _filledQuantity * _averagePrice
       _filledQuantity += executedQuantity
@@ -111,22 +110,22 @@ class Order(val account: Account, val sec: Sec, var quantity: Double, var price:
         case _ =>
       }
 
-      if (_filledQuantity == quantity) {
+      if (remainQuantity == 0) {
         status = OrderStatus.Filled
-      } else {
+      } else { 
         status = OrderStatus.Partial
       }
 
       log.info("Order Filled: %s".format(this))
 
-      account.processFilledOrder(time, this)
+      account.processFillingOrder(time, this)
     }
   }
   
   override
   def toString = {
-    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity=%5$s, price=%6$s, status=%7$s, stopPrice=%8$s, validity=%9$s, expiration=%10$s, refrence=%11$s".format(
-      new Date(time), sec.uniSymbol, tpe, side, quantity, price, status, stopPrice, validity, expireTime, reference
+    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$d(%6$d), price=%7$ 5.2f, status=%8$s, stopPrice=%9$ 5.2f, validity=%10$s, expiration=%11$s, refrence=%12$s".format(
+      new Date(time), sec.uniSymbol, tpe, side, quantity.toInt, _filledQuantity.toInt, price, status, stopPrice, validity, expireTime, reference
     )
   }
 }

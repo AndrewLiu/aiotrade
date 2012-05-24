@@ -3,33 +3,34 @@ package org.aiotrade.lib.trading
 import java.util.Calendar
 import java.util.Date
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.util.actors.Reactor
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class Benchmark(freq: TFreq) {
+class Benchmark(tradingService: TradingService) extends Reactor {
   case class Profit(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
     override 
     def toString = {
-      "%1$tY.%1$tm.%1$td \t %2$ 8.2f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
+      "%1$tY.%1$tm.%1$td \t\t %2$ 8.2f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
         new Date(time), nav, accRate * 100, periodRate * 100, riskFreeRate * 100, periodRateForSharpe * 100
       )
     }
   }
   
-  var tradeCount: Int = _
-  var tradeFromTime: Long = Long.MinValue
-  var tradeToTime: Long = Long.MinValue
-  var tradePeriod: Int = _
+  case class MarginCall(time: Long, availableFunds: Double, equity: Double, positionEquity: Double, positionMagin: Double) {
+    override 
+    def toString = {
+      "%1$tY.%1$tm.%1$td \t\t %2$ 8.2f \t %3$ 8.2f \t %4$ 8.2f \t %5$ 8.2f".format(
+        new Date(time), availableFunds, equity, positionEquity, positionMagin
+      )
+    }
+  }
   
-  var times = new ArrayList[Long]
-  var equities = new ArrayList[Double]()
-  
-  var initialEquity = Double.NaN
+  var initialEquity = tradingService.accounts.foldLeft(0.0){(s, x) => s + x.initialEquity}
   var profitRatio = 0.0
   var annualizedProfitRatio = 0.0
   private var lastEquity = 0.0
@@ -37,12 +38,27 @@ class Benchmark(freq: TFreq) {
   private var maxDrawdownEquity = Double.MaxValue
   var maxDrawdownRatio = Double.MinValue
   
-  var profits: Array[Profit] = Array()
-  var rrr: Double = _
-  var sharpeRatio: Double = _
+  var tradeCount: Int = _
+  var tradeFromTime: Long = Long.MinValue
+  var tradeToTime: Long = Long.MinValue
+  var tradePeriod: Int = _
   
+  val times = new ArrayList[Long]
+  val equities = new ArrayList[Double]()
+  private val marginCalls = ArrayList[MarginCall]
+  private var secTransactions = Array[SecurityTransaction]()
+  private var expTransactions = Array[ExpensesTransaction]()
+  
+  var weeklyProfits: Array[Profit] = Array()
+  var monthlyProfits: Array[Profit] = Array()
+  var rrr: Double = _
+  var sharpeRatioOnWeek: Double = _
+  var sharpeRatioOnMonth: Double = _
+  
+  var weeklyRiskFreeRate = 0.0 // 0.003
   var monthlyRiskFreeRate = 0.0 // 0.003
   
+  var reportDayOfWeek = Calendar.SATURDAY
   var reportDayOfMonth = 26
   
   def at(time: Long, equity: Double) {
@@ -56,16 +72,29 @@ class Benchmark(freq: TFreq) {
 
     lastEquity = equity
     profitRatio = equity / initialEquity - 1
+    
+    tradingService.accounts foreach {
+      case x: FutureAccount if x.availableFunds < 0 =>
+        marginCalls += MarginCall(time, x.availableFunds, x.equity, x.positionEquity, x.positionMargin)
+      case _ =>
+    }
     calcMaxDropdown(equity)
   }
   
   def report: String = {
     tradePeriod = daysBetween(tradeFromTime, tradeToTime)
     annualizedProfitRatio = math.pow(1 + profitRatio, 365.24 / tradePeriod) - 1
-    
     rrr = annualizedProfitRatio / maxDrawdownRatio
-    profits = calcMonthlyReturn(times.toArray, toNavs(initialEquity, equities))
-    sharpeRatio = 12 * calcSharpeRatio(profits)
+    
+    val navs = toNavs(initialEquity, equities)
+    weeklyProfits = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
+    monthlyProfits = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
+    sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyProfits)
+    sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyProfits)
+    
+    val transactions = collectTransactions
+    secTransactions = transactions._1
+    expTransactions = transactions._2
     
     toString
   }
@@ -117,7 +146,7 @@ class Benchmark(freq: TFreq) {
   /**
    * navs Net Asset Value
    */
-  private def calcMonthlyReturn(times: Array[Long], navs: Array[Double]) = {
+  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double])(getPeriodicReportTimeFun: (Calendar, Int) => Long)(riskFreeRate: Double) = {
     val reportTimes = new ArrayList[Long]()
     val reportNavs = new ArrayList[Double]()
     val now = Calendar.getInstance
@@ -130,17 +159,22 @@ class Benchmark(freq: TFreq) {
       val nav = navs(i)
       now.setTimeInMillis(time)
       if (reportTime == Long.MaxValue) {
-        reportTime = getReportTime(now, reportDayOfMonth)
+        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
       }
-      if (time > reportTime && prevTime <= reportTime) {
-        reportTimes += reportTime
-        reportNavs += prevNav
-        reportTime = getReportTime(now, reportDayOfMonth)
-      } else {
-        if (i == times.length - 1) {
-          reportTimes += getReportTime(now, reportDayOfMonth)
-          reportNavs += nav
+      
+      var reported = false
+      if (time > reportTime) {
+        if (prevTime <= reportTime) {
+          reportTimes += reportTime
+          reportNavs += prevNav
+          reported = true
         }
+        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
+      }
+      
+      if (!reported && i == times.length - 1) {
+        reportTimes += getPeriodicReportTimeFun(now, reportDayOfWeek)
+        reportNavs += nav
       }
       
       prevTime = time
@@ -156,8 +190,8 @@ class Benchmark(freq: TFreq) {
         val time = reportTimes(i)
         val nav = reportNavs(i)
         val accRate = nav - 1
-        val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else 0.0
-        profits += Profit(time, nav, accRate, periodRate, monthlyRiskFreeRate)
+        val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else nav / 1.0 - 1
+        profits += Profit(time, nav, accRate, periodRate, riskFreeRate)
         i += 1
       }
       
@@ -165,50 +199,146 @@ class Benchmark(freq: TFreq) {
     } else {
       Array[Profit]()
     }
-  }
+  } 
   
   /**
-   * @param the current date
+   * @param the current date calendar
    * @param the day of month of settlement, last day of each month if -1 
    */
-  private def getReportTime(now: Calendar, _reportDayOfMonth: Int = -1) = {
+  private def getWeeklyReportTime(now: Calendar, _reportDayOfWeek: Int = -1) = {
+    val reportDayOfWeek = if (_reportDayOfWeek == -1) {
+      Calendar.SATURDAY
+    } else _reportDayOfWeek
+    
+    if (now.get(Calendar.DAY_OF_WEEK) > reportDayOfWeek) {
+      now.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
+    }
+    
+    now.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
+    now.getTimeInMillis
+  }
+
+  /**
+   * @param the current date calendar
+   * @param the day of month of settlement, last day of each month if -1 
+   */
+  private def getMonthlyReportTime(now: Calendar, _reportDayOfMonth: Int = -1) = {
     val reportDayOfMonth = if (_reportDayOfMonth == -1) {
       now.getActualMaximum(Calendar.DAY_OF_MONTH)
     } else _reportDayOfMonth
     
     if (now.get(Calendar.DAY_OF_MONTH) > reportDayOfMonth) {
-      now.add(Calendar.MONTH, 1) // will settlement in next month
+      now.add(Calendar.MONTH, 1) // will report in next month
     }
     
     now.set(Calendar.DAY_OF_MONTH, reportDayOfMonth)
     now.getTimeInMillis
   }
+  
+  
+  private def collectTransactions = {
+    val secTransactions = new ArrayList[SecurityTransaction]()
+    val expTransactions = new ArrayList[ExpensesTransaction]()
+    for {
+      account <- tradingService.accounts
+      TradeTransaction(time, order, chunk, expenses) <- account.transactions
+    } {
+      secTransactions ++= chunk
+      expTransactions += expenses
+    }
+    (secTransactions.toArray, expTransactions.toArray)
+  }
+
 
   override 
   def toString = {
-    """================ Benchmark Report ================
-Trade period      : %1$tY.%1$tm.%1$td --- %2$tY.%2$tm.%2$td in %3$s days
-Initial equity    : %4$.0f
-Final equity      : %5$.0f  
-Total Return      : %6$.2f%%
-Annualized Return : %7$.2f%% 
-Max Drawdown      : %8$.2f%%
-RRR               : %9$.2f
-Sharpe ratio      : %10$.2f
+    val statWeekly  = calcStatistics(weeklyProfits)
+    val statMonthly = calcStatistics(monthlyProfits)
+    ;
+    """
+================ Benchmark Report -- %1$s ================
+Trade period           : %2$tY.%2$tm.%2$td --- %3$tY.%3$tm.%3$td (%4$s calendar days, %5$s trading periods)
+Initial equity         : %6$.0f
+Final equity           : %7$.0f  
+Total Return           : %8$.2f%%
+Annualized Return      : %9$.2f%% 
+Max Drawdown           : %10$.2f%%
+RRR                    : %11$5.2f
+Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
+Sharpe Ratio on Months : %14$5.2f  (%15$s months)
+
+================ Weekly Return ================
+date                  nav        accum      period    riskfree      sharpe
+%16$s
+Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
+
 ================ Monthly Return ================
-Date                  nav       acc-return   period-return       rf-return    sharpe-return
-%11$s
+date                  nav        accum      period    riskfree      sharpe
+%24$s
+Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
+    
+================ Margin Call ================
+date           avaliableFunds           equity  positionEquity positionMargin
+%32$s
+
+================ Executions ================
+date            sec      quantity       price        amount
+%33$s
     """.format(
-      tradeFromTime, tradeToTime, tradePeriod,
+      tradingService.param,
+      tradeFromTime, tradeToTime, tradePeriod, times.length,
       initialEquity,
       lastEquity,
       profitRatio * 100,
       annualizedProfitRatio * 100,
       maxDrawdownRatio * 100,
       rrr,
-      sharpeRatio,
-      profits.mkString("\n")
+      sharpeRatioOnWeek, weeklyProfits.length,
+      sharpeRatioOnMonth, monthlyProfits.length,
+      weeklyProfits.mkString("\n"),
+      statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
+      monthlyProfits.mkString("\n"),
+      statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
+      marginCalls.mkString("\n"),
+      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
     )
+  }
+  
+  private def calcStatistics(profits: Array[Profit]) = {
+    val len = profits.length.toDouble
+    var sum = 0.0
+    var max = Double.MinValue
+    var min = Double.MaxValue
+    var win = 0
+    var loss = 0
+    var tie = 0
+    var i = 0
+    while (i < len) {
+      val periodRate = profits(i).periodRate
+      sum += periodRate
+      max = math.max(max, periodRate)
+      min = math.min(min, periodRate)
+      if (periodRate > 0) win += 1 
+      else if (periodRate < 0) loss += 1 
+      else tie += 1
+      i += 1
+    }
+    
+    val average = if (len > 0) sum / len else 0.0
+    var devSum = 0.0
+    i = 0
+    while (i < len) {
+      val x = profits(i).periodRate - average
+      devSum += x * x
+      i += 1
+    }
+    val stdDev = math.sqrt(devSum / len)
+
+    if (len > 0) {
+      (average * 100, max * 100, min * 100, stdDev * 100, win / len * 100, loss / len * 100, tie / len * 100)
+    } else {
+      (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    }
   }
   
   /**
