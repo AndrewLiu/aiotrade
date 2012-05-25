@@ -222,6 +222,10 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         }
     }
   }
+  
+  def setSer(ser: QuoteSer): Unit = mutex synchronized {
+    freqToQuoteSer(ser.freq) = ser
+  }
 
   def moneyFlowSerOf(freq: TFreq): Option[MoneyFlowSer] = mutex synchronized {
     freq match {

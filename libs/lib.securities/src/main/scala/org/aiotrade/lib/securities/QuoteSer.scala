@@ -109,6 +109,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   def valueOf(time: Long): Option[Quote] = {
     if (exists(time)) {
       val quote = new Quote
+      quote.time   = time
       quote.open   = open(time)
       quote.high   = high(time)
       quote.low    = low(time)
