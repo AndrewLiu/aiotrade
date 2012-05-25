@@ -1,15 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.aiotrade.lib.securities.data
 
 import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
 
-object SyncExportToAvro extends SyncBase{
+/**
+ * 
+ * @author Caoyuan Deng
+ */
+object SyncExportToAvro extends SyncBasis {
   private val log = Logger.getLogger(this.getClass.getName)
   def main(args: Array[String]){
     val date = getNearestTime(9, 0)

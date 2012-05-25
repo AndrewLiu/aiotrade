@@ -53,7 +53,7 @@ object Packaging {
     val destPath = args(0)
     val sourceUri = args(1)
     val branch = if (args.length > 2) args(2) else null
-    log.info("Re-cloning base data to " + destPath + " from " + sourceUri + ", branch=" + (if (branch == null) "refs/heads/master" else branch))
+    log.info("Re-cloning basis data to " + destPath + " from " + sourceUri + ", branch=" + (if (branch == null) "refs/heads/master" else branch))
     try {
       Git.clone(destPath, sourceUri, branch = branch)
     } catch {
