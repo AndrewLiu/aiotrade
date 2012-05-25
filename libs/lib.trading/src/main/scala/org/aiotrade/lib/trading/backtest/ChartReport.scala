@@ -183,14 +183,14 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
     private def updateData(data: ChartData) {
       // should run in FX application thread
       runInFXThread {
-        val id = data.name + data.id
-        val series = idToSeries.getOrElse(id, {
+        val serieId = data.name + data.id
+        val series = idToSeries.getOrElse(serieId, {
             val x = if (data.name.contains("Refer")) {
               createSeries(data.name + "-" + data.id, true)
             } else {
               createSeries(data.name + "-" + data.id)
             }
-            idToSeries(id) = x
+            idToSeries(serieId) = x
             x
           }
         )
