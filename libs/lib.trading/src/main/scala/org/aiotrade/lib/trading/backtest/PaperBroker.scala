@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading
+package org.aiotrade.lib.trading.backtest
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -6,6 +6,17 @@ import java.util.UUID
 import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.trading.Account
+import org.aiotrade.lib.trading.Broker
+import org.aiotrade.lib.trading.BrokerException
+import org.aiotrade.lib.trading.Order
+import org.aiotrade.lib.trading.OrderDelta
+import org.aiotrade.lib.trading.OrderDeltasEvent
+import org.aiotrade.lib.trading.OrderRoute
+import org.aiotrade.lib.trading.OrderSide
+import org.aiotrade.lib.trading.OrderStatus
+import org.aiotrade.lib.trading.OrderType
+import org.aiotrade.lib.trading.OrderValidity
 import scala.collection.mutable
 
 class PaperBroker(val name: String) extends Broker {
@@ -54,7 +65,7 @@ class PaperBroker(val name: String) extends Broker {
         pendingSecToExecutingOrders(order.sec) = executingOrders
       }
     }
-      
+
     order.status = OrderStatus.Canceled
       
     log.info("Order Cancelled: %s".format(order))
