@@ -31,13 +31,13 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected val closingOrders = new mutable.HashMap[Account, List[Order]]() // orders to close position
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
-  protected var tradeStartIdx: Int = _
-  protected var isTradeStarted: Boolean = _
-
   /** current closed refer idx */
   protected var closeReferIdx = 0
   /** current closed refer time */
   protected def closeTime = timestamps(closeReferIdx)
+
+  protected var tradeStartIdx: Int = -1
+  protected def isTradeStarted: Boolean = tradeStartIdx >= 0
 
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
@@ -145,7 +145,6 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     val allClosingOrders = closingOrders flatMap (_._2)
     
     if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
-      isTradeStarted = true
       tradeStartIdx = closeReferIdx
     }
     
