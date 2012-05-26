@@ -45,10 +45,8 @@ extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _
   }
   
   private def doGo(fromTime: Long, toTime: Long) {
-    this.fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-    this.toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-    this.fromTime = timestamps(fromIdx)
-    this.toTime = timestamps(toIdx)
+    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     
     var i = fromIdx
     while (i <= toIdx) {

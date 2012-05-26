@@ -31,10 +31,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected val closingOrders = new mutable.HashMap[Account, List[Order]]() // orders to close position
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
-  protected var fromTime: Long = _
-  protected var toTime: Long = _
-  protected var fromIdx: Int = _
-  protected var toIdx: Int = _
+  protected var tradeStartIdx: Int = _
   protected var isTradeStarted: Boolean = _
 
   /** current closed refer idx */
@@ -128,7 +125,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       
     checkOrderStatus
 
-    report(referIdx)
+    if (isTradeStarted) {
+      report(referIdx)
+    }
 
     // today's orders processed, now begin to check new conditions and 
     // prepare new orders according to today's close status.
@@ -142,14 +141,22 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   protected def executeOrders {
+    val allOpeningOrders = openingOrders flatMap (_._2)
+    val allClosingOrders = closingOrders flatMap (_._2)
+    
+    if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
+      isTradeStarted = true
+      tradeStartIdx = closeReferIdx
+    }
+    
     // sell first?. If so, how about the returning funds?
-    openingOrders flatMap (_._2) foreach {order => 
+    allOpeningOrders foreach {order => 
       broker.submit(order)
       //@Todo this should be re-considered for real trading, i.e. trigged by returning order executed event 
       broker.processTrade(order.sec, closeTime, order.price, order.quantity)
     }
 
-    closingOrders flatMap (_._2) foreach {order => 
+    allClosingOrders foreach {order => 
       broker.submit(order)
       //@Todo this should be re-considered for real trading, i.e. trigged by returning order executed event 
       broker.processTrade(order.sec, closeTime, order.price, order.quantity)
@@ -188,11 +195,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     val numAccounts = accounts.size
     val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
     param.publish(ReportData("Total", 0, closeTime, equity / initialEquity))
-    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / referSer.open(fromIdx) - 1))
+    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / referSer.open(tradeStartIdx) - 1))
     
-    if (isTradeStarted) {
-      benchmark.at(closeTime, equity)
-    }
+    benchmark.at(closeTime, equity)
 
     accounts foreach {account =>
       if (numAccounts > 1) {
@@ -350,10 +355,6 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   class OrderCompose(val sec: Sec, val side: OrderSide, referIdxAtDecision: Int) {
-    if (!isTradeStarted) {
-      isTradeStarted = true
-    }
-    
     val ser = sec.serOf(freq).get
     private var _account = accounts.head // default account
     private var _price = Double.NaN
