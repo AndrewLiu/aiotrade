@@ -2,6 +2,7 @@ package org.aiotrade.lib.trading.backtest
 
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Date
 import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
@@ -47,6 +48,7 @@ extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _
   private def doGo(fromTime: Long, toTime: Long) {
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
     
     var i = fromIdx
     while (i <= toIdx) {
