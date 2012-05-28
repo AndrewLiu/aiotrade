@@ -10,7 +10,11 @@ import java.util.TimerTask
 import java.util.logging.Level
 import java.util.logging.Logger
 
-object SyncImportFromAvro extends SyncBase{
+/**
+ * 
+ * @author Caoyuan Deng
+ */
+object SyncImportFromAvro extends SyncBasis {
   private val log = Logger.getLogger(this.getClass.getName)
   def main(args: Array[String]){
     val date = getNearestTime(9, 5)

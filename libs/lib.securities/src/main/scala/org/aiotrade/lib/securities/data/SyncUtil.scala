@@ -93,16 +93,16 @@ object SyncUtil {
   /**
    * @Note lazy call them so we can specify config file before orm package
    */
-  private lazy val baseTables = List(Companies,
-                                     Exchanges,
-                                     ExchangeCloseDates,
-                                     Secs,
-                                     SecDividends,
-                                     SecInfos,
-                                     SecIssues,
-                                     SecStatuses,
-                                     Sectors,
-                                     SectorSecs
+  private lazy val basisTables = List(Companies,
+                                      Exchanges,
+                                      ExchangeCloseDates,
+                                      Secs,
+                                      SecDividends,
+                                      SecInfos,
+                                      SecIssues,
+                                      SecStatuses,
+                                      Sectors,
+                                      SectorSecs
   )
 
   def main(args: Array[String]) {
@@ -167,8 +167,8 @@ object SyncUtil {
    */
   def exportToAvro(destDirPath: String) {
     val t0 = System.currentTimeMillis
-    val holdingRecords = baseTables map {x => SELECT (x.*) FROM (x) list()}
-    baseTables foreach {x => exportToAvro(destDirPath, x)}
+    val holdingRecords = basisTables map {x => SELECT (x.*) FROM (x) list()}
+    basisTables foreach {x => exportToAvro(destDirPath, x)}
     log.info("Exported to avro in " + (System.currentTimeMillis - t0) + " ms.")
   }
 
@@ -182,8 +182,8 @@ object SyncUtil {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = baseTables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
-    baseTables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
+    val holdingRecords = basisTables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    basisTables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
@@ -228,111 +228,111 @@ object SyncUtil {
    * Extract data to destPath from jar file
    * @see http://bits.netbeans.org/dev/javadoc/org-openide-modules/org/openide/modules/InstalledFileLocator.html
    */
-  def extractDataTo(destPath: String) {
-    var jarFile: JarFile = null
-    try {
-      // locate jar 
-      val locator = classOf[Locator]
-      // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
-      val url = locator.getProtectionDomain.getCodeSource.getLocation
-      log.info("Initial data is located at: " + url)
+   def extractDataTo(destPath: String) {
+      var jarFile: JarFile = null
+      try {
+        // locate jar 
+        val locator = classOf[Locator]
+        // @Note We'll get a org.netbeans.JarClassLoader$NbJarURLConnection, which seems cannot call jarUrl.openStream
+        val url = locator.getProtectionDomain.getCodeSource.getLocation
+        log.info("Initial data is located at: " + url)
 
-      val urlStr = url.toExternalForm
-      val jarUrl = if (urlStr.startsWith("jar:")) url else new URL("jar:" + urlStr + "!/")
-      jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
+        val urlStr = url.toExternalForm
+        val jarUrl = if (urlStr.startsWith("jar:")) url else new URL("jar:" + urlStr + "!/")
+        jarFile = jarUrl.openConnection.asInstanceOf[JarURLConnection].getJarFile
 
-      val t0 = System.currentTimeMillis
-      val buf = new Array[Byte](1024)
-      val entries = jarFile.entries
-      while (entries.hasMoreElements) {
-        val entry = entries.nextElement
-        val entryName = entry.getName
-        if (entryName != "data/" && entryName.startsWith("data/")) {
-          var fileName = entryName.substring(4, entryName.length)
-          if (fileName.charAt(fileName.length - 1) == '/') fileName = fileName.substring(0, fileName.length - 1)
-          if (fileName.charAt(0) == '/') fileName = fileName.substring(1)
-          if (File.separatorChar != '/') fileName = fileName.replace('/', File.separatorChar)
+        val t0 = System.currentTimeMillis
+        val buf = new Array[Byte](1024)
+        val entries = jarFile.entries
+        while (entries.hasMoreElements) {
+          val entry = entries.nextElement
+          val entryName = entry.getName
+          if (entryName != "data/" && entryName.startsWith("data/")) {
+            var fileName = entryName.substring(4, entryName.length)
+            if (fileName.charAt(fileName.length - 1) == '/') fileName = fileName.substring(0, fileName.length - 1)
+            if (fileName.charAt(0) == '/') fileName = fileName.substring(1)
+            if (File.separatorChar != '/') fileName = fileName.replace('/', File.separatorChar)
         
-          val file = new File(destPath, fileName)
-          if (entry.isDirectory) {
-            // make sure the directory exists
-            file.mkdirs
-          }  else {
-            // make sure the directory exists
-            val parent = file.getParentFile
-            if (parent != null && !parent.exists) {
-              parent.mkdirs
-            }
+            val file = new File(destPath, fileName)
+            if (entry.isDirectory) {
+              // make sure the directory exists
+              file.mkdirs
+            }  else {
+              // make sure the directory exists
+              val parent = file.getParentFile
+              if (parent != null && !parent.exists) {
+                parent.mkdirs
+              }
             
-            // dump the file
-            val in = jarFile.getInputStream(entry)
-            val out = new FileOutputStream(file)
-            var len = 0
-            while ({len = in.read(buf, 0, buf.length); len != -1}) {
-              out.write(buf, 0, len)
+              // dump the file
+              val in = jarFile.getInputStream(entry)
+              val out = new FileOutputStream(file)
+              var len = 0
+              while ({len = in.read(buf, 0, buf.length); len != -1}) {
+                out.write(buf, 0, len)
+              }
+              out.flush
+              out.close
+              file.setLastModified(entry.getTime)
+              in.close
             }
-            out.flush
-            out.close
-            file.setLastModified(entry.getTime)
-            in.close
+          }         
+        }
+      
+        // rename folder "data/dotgit" to "data/.git"
+        val gitFile = new File(destPath, "dotgit")
+        if (gitFile.exists) {
+          gitFile.renameTo(new File(destPath, ".git"))
+          initLocalDataGit(destPath)
+        }
+      
+        log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
+      } catch {
+        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      } finally {
+        if (jarFile != null) {
+          try {
+            jarFile.close
+          } catch {
+            case _ =>
           }
-        }         
-      }
-      
-      // rename folder "data/dotgit" to "data/.git"
-      val gitFile = new File(destPath, "dotgit")
-      if (gitFile.exists) {
-        gitFile.renameTo(new File(destPath, ".git"))
-        initLocalDataGit(destPath)
-      }
-      
-      log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
-    } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex)
-    } finally {
-      if (jarFile != null) {
-        try {
-          jarFile.close
-        } catch {
-          case _ =>
         }
       }
     }
-  }
   
-  def initLocalDataGit(destPath: String) {
-    localDataGit = Git.getGit(destPath + "/.git")
-  }
+   def initLocalDataGit(destPath: String) {
+      localDataGit = Git.getGit(destPath + "/.git")
+    }
   
-  @throws(classOf[Exception])
-  def syncLocalData() {
-    localDataGit match {
-      case None => // @todo, clone a new one
-      case Some(git) =>
-        Git.pull(git) match {
-          case Some(pullResult) =>
-            val willResetSearchTable = pullResult.getMergeResult match {
-              case null => false
-              case x => 
-                import MergeResult.MergeStatus
-                val status = x.getMergeStatus 
-                log.warning("Pull status is: " + status)
-                status match {
-                  case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
-                  case MergeStatus.ALREADY_UP_TO_DATE => false
-                  case _ => false
-                }
-            }
+   @throws(classOf[Exception])
+   def syncLocalData() {
+      localDataGit match {
+        case None => // @todo, clone a new one
+        case Some(git) =>
+          Git.pull(git) match {
+            case Some(pullResult) =>
+              val willResetSearchTable = pullResult.getMergeResult match {
+                case null => false
+                case x => 
+                  import MergeResult.MergeStatus
+                  val status = x.getMergeStatus 
+                  log.warning("Pull status is: " + status)
+                  status match {
+                    case MergeStatus.FAST_FORWARD | MergeStatus.MERGED => true
+                    case MergeStatus.ALREADY_UP_TO_DATE => false
+                    case _ => false
+                  }
+              }
           
-            // refresh secs, secInfos, secDividends etc
-            if (willResetSearchTable) {
-              Exchange.resetSearchTables
-            }
+              // refresh secs, secInfos, secDividends etc
+              if (willResetSearchTable) {
+                Exchange.resetSearchTables
+              }
             
-          case None => log.warning("Pull result is none")
-        }
+            case None => log.warning("Pull result is none")
+          }
+      }
     }
-  }
     
 
-}
+   }

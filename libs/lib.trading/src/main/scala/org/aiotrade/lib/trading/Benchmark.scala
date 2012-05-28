@@ -15,7 +15,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     
     override 
     def toString = {
-      "%1$tY.%1$tm.%1$td \t %2$ 8.2f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
+      "%1$tY.%1$tm.%1$td \t %2$ 8.3f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
         new Date(time), nav, accRate * 100, periodRate * 100, riskFreeRate * 100, periodRateForSharpe * 100
       )
     }

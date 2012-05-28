@@ -50,7 +50,7 @@ import ru.circumflex.orm.avro.AvroReader
  *
  * @author Caoyuan Deng
  */
-abstract class SyncBase {
+abstract class SyncBasis {
   private val log = Logger.getLogger(this.getClass.getName)
   val timer = new java.util.Timer("Sync")
 
@@ -62,10 +62,10 @@ abstract class SyncBase {
   /**
    * @Note lazy call them so we can specify config file before orm package
    */
-  private lazy val baseTables = List(Secs,
-                                     SecInfos,
-                                     Sectors,
-                                     SectorSecs
+  private lazy val basisTables = List(Secs,
+                                      SecInfos,
+                                      Sectors,
+                                      SectorSecs
   )
 
   def test() {
@@ -124,8 +124,8 @@ abstract class SyncBase {
    */
   def exportToAvro(destDirPath: String) {
     val t0 = System.currentTimeMillis
-    val holdingRecords = baseTables map {x => SELECT (x.*) FROM (x) list()}
-    baseTables foreach {x => exportToAvro(destDirPath, x)}
+    val holdingRecords = basisTables map {x => SELECT (x.*) FROM (x) list()}
+    basisTables foreach {x => exportToAvro(destDirPath, x)}
     log.info("Exported to avro in " + (System.currentTimeMillis - t0) + " ms.")
   }
 
@@ -139,8 +139,8 @@ abstract class SyncBase {
     log.info("Created schema in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
     
     t0 = System.currentTimeMillis
-    val holdingRecords = baseTables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
-    baseTables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
+    val holdingRecords = basisTables map {x => selectAvroRecords(dataDir + File.separator +  x.relationName + ".avro", x)}
+    basisTables foreach {x => importAvroToDb(dataDir + File.separator + x.relationName + ".avro", x)}
     COMMIT
     log.info("Imported data to db in " + (System.currentTimeMillis - t0) / 1000.0 + " s.")
   }
