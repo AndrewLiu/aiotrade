@@ -44,15 +44,15 @@ object StatisticFunction {
   val VALUE = 0
   val MASS = 1
 
-  def sum(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = sum(values.toArray, begIdx, endIdx)
-  def sum(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    if (begIdx < 0 || endIdx >= values.size) {
+  def sum(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = sum(values.toArray, fromIdx, toIdx)
+  def sum(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    if (fromIdx < 0 || toIdx >= values.size) {
       return Null.Double
     }
 
     var sum = 0.0
-    var i = begIdx
-    while (i <= endIdx) {
+    var i = fromIdx
+    while (i <= toIdx) {
       val value = values(i)
       if (Null.not(value)) {
         sum += value
@@ -86,14 +86,14 @@ object StatisticFunction {
     }
   }
 
-  def ma(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = ma(values.toArray, begIdx, endIdx)
-  def ma(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    if (begIdx < 0 || endIdx >= values.size) {
+  def ma(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = ma(values.toArray, fromIdx, toIdx)
+  def ma(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    if (fromIdx < 0 || toIdx >= values.size) {
       return Null.Double
     }
 
-    val period1 = period(begIdx, endIdx).toDouble
-    sum(values, begIdx, endIdx) / period1
+    val period1 = period(fromIdx, toIdx).toDouble
+    sum(values, fromIdx, toIdx) / period1
   }
 
   /**
@@ -122,16 +122,16 @@ object StatisticFunction {
     }
   }
 
-  def ema(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = ema(values.toArray, begIdx, endIdx)
-  def ema(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    if (begIdx < 0 || endIdx >= values.size) {
+  def ema(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = ema(values.toArray, fromIdx, toIdx)
+  def ema(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    if (fromIdx < 0 || toIdx >= values.size) {
       return Null.Double
     }
 
-    val period1 = period(begIdx, endIdx).toDouble
+    val period1 = period(fromIdx, toIdx).toDouble
     var ema = 0.0
-    var i = begIdx
-    while (i <= endIdx) {
+    var i = fromIdx
+    while (i <= toIdx) {
       ema += ((period1 - 1.0) / (period1 + 1.0)) * ema + (2.0 / (period1 + 1.0)) * values(i)
       i += 1
     }
@@ -160,9 +160,9 @@ object StatisticFunction {
     //return ((period - 1.0f) / (period + 1.0f)) * prevEma + (2.0f / (period + 1.0f)) * value;
   }
 
-  def max(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = max(values.toArray, begIdx, endIdx)
-  def max(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    maxmin(values, begIdx, endIdx)(MAX)
+  def max(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = max(values.toArray, fromIdx, toIdx)
+  def max(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    maxmin(values, fromIdx, toIdx)(MAX)
   }
 
   def imax(idx: Int, values: ArrayList[Double], period: Int, prev: Double): Double = imax(idx, values.toArray, period, prev)
@@ -183,9 +183,9 @@ object StatisticFunction {
     }
   }
 
-  def min(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = min(values.toArray, begIdx, endIdx)
-  def min(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    maxmin(values, begIdx, endIdx)(MIN)
+  def min(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = min(values.toArray, fromIdx, toIdx)
+  def min(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    maxmin(values, fromIdx, toIdx)(MIN)
   }
 
   def imin(idx: Int, values: ArrayList[Double], period: Int, prev: Double): Double = imin(idx, values.toArray, period, prev)
@@ -206,16 +206,16 @@ object StatisticFunction {
     }
   }
 
-  def maxmin(values: ArrayList[Double], begIdx: Int, endIdx: Int): Array[Double] = maxmin(values.toArray, begIdx, endIdx)
-  def maxmin(values: Array[Double], begIdx: Int, endIdx: Int): Array[Double] = {
-    if (begIdx < 0) {
+  def maxmin(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Array[Double] = maxmin(values.toArray, fromIdx, toIdx)
+  def maxmin(values: Array[Double], fromIdx: Int, toIdx: Int): Array[Double] = {
+    if (fromIdx < 0) {
       return Array(Null.Double, Null.Double)
     }
 
     var max = Double.MinValue
     var min = Double.MaxValue
-    val lastIdx = math.min(endIdx, values.length - 1)
-    var i = begIdx
+    val lastIdx = math.min(toIdx, values.length - 1)
+    var i = fromIdx
     while (i <= lastIdx) {
       val value = values(i)
       if (Null.not(value)) {
@@ -231,107 +231,107 @@ object StatisticFunction {
   /**
    * Standard Deviation
    */
-  def stdDev(values: ArrayList[Double], begIdx: Int, endIdx: Int): Double = stdDev(values.toArray, begIdx, endIdx)
-  def stdDev(values: Array[Double], begIdx: Int, endIdx: Int): Double = {
-    if (begIdx < 0 || endIdx >= values.size) {
+  def stdDev(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = stdDev(values.toArray, fromIdx, toIdx)
+  def stdDev(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    if (fromIdx < 0 || toIdx >= values.size) {
       return Null.Double
     }
 
-    val ma1 = ma(values, begIdx, endIdx)
-    val lastIdx = math.min(endIdx, values.size - 1)
+    val ma1 = ma(values, fromIdx, toIdx)
+    val lastIdx = math.min(toIdx, values.size - 1)
     var deviation_square_sum = 0.0
-    var i = begIdx
+    var i = fromIdx
     while (i <= lastIdx) {
       val deviation = values(i) - ma1
       deviation_square_sum += deviation * deviation
       i += 1
     }
 
-    val period1 = period(begIdx, endIdx).toDouble
+    val period1 = period(fromIdx, toIdx).toDouble
     math.sqrt(deviation_square_sum / period1)
   }
 
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Double], begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Double]] = probMass(values.toArray, begIdx, endIdx, nIntervals)
-  def probMass(values: Array[Double], begIdx: Int, endIdx: Int, nIntervals: Int): Array[Array[Double]] = {
-    probMass(values, null.asInstanceOf[Array[Double]], begIdx, endIdx, nIntervals)
+  def probMass(values: ArrayList[Double], fromIdx: Int, toIdx: Int, nIntervals: Int): Array[Array[Double]] = probMass(values.toArray, fromIdx, toIdx, nIntervals)
+  def probMass(values: Array[Double], fromIdx: Int, toIdx: Int, nIntervals: Int): Array[Array[Double]] = {
+    probMass(values, null.asInstanceOf[Array[Double]], fromIdx, toIdx, nIntervals)
   }
 
   /**
    * Probability Mass Function
    */
   def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-               begIdx: Int, endIdx: Int, nIntervals: Int
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, begIdx, endIdx, nIntervals)
+               fromIdx: Int, toIdx: Int, nIntervals: Int
+  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, nIntervals)
   def probMass(values: Array[Double], weights: Array[Double],
-               begIdx: Int, endIdx: Int, nIntervals: Int
+               fromIdx: Int, toIdx: Int, nIntervals: Int
   ): Array[Array[Double]] = {
 
     if (nIntervals <= 0) {
       return null
     }
 
-    val begIdx1 = if (begIdx < 0) 0 else begIdx
+    val begIdx1 = if (fromIdx < 0) 0 else fromIdx
 
-    val maxmin1 = maxmin(values, begIdx1, endIdx)
+    val maxmin1 = maxmin(values, begIdx1, toIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
-    probMass(values, weights, begIdx1, endIdx, max, min, nIntervals)
+    probMass(values, weights, begIdx1, toIdx, max, min, nIntervals)
   }
 
   /**
    * Probability Density Function
    */
   def probMass(values: ArrayList[Double],
-               begIdx: Int, endIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMass(values.toArray, begIdx, endIdx, interval)
+               fromIdx: Int, toIdx: Int, interval: Double
+  ): Array[Array[Double]] = probMass(values.toArray, fromIdx, toIdx, interval)
   def probMass(values: Array[Double],
-               begIdx: Int, endIdx: Int, interval: Double
+               fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
 
-    probMass(values, null, begIdx, endIdx, interval)
+    probMass(values, null, fromIdx, toIdx, interval)
   }
 
   /**
    * Probability Mass Function
    */
   def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-               begIdx: Int, endIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, begIdx, endIdx, interval)
+               fromIdx: Int, toIdx: Int, interval: Double
+  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, interval)
   def probMass(values: Array[Double], weights: Array[Double],
-               begIdx: Int, endIdx: Int, interval: Double
+               fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
 
     if (interval <= 0) {
       return null
     }
 
-    val begIdx1 = if (begIdx < 0) 0 else begIdx
+    val begIdx1 = if (fromIdx < 0) 0 else fromIdx
 
-    val maxmin1 = maxmin(values, begIdx1, endIdx)
+    val maxmin1 = maxmin(values, begIdx1, toIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
     val nIntervals = (((max - min) / interval) + 1).toInt
-    probMass(values, weights, begIdx1, endIdx, max, min, nIntervals)
+    probMass(values, weights, begIdx1, toIdx, max, min, nIntervals)
   }
 
   /**
    * Probability Mass Function
    */
   private def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-                       begIdx: Int, endIdx: Int, max: Double, min: Double, nIntervals: Int
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, begIdx, endIdx, max, min, nIntervals)
+                       fromIdx: Int, toIdx: Int, max: Double, min: Double, nIntervals: Int
+  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, max, min, nIntervals)
   private def probMass(values: Array[Double], weights: Array[Double],
-                       begIdx: Int, endIdx: Int, max: Double, min: Double, nIntervals: Int
+                       fromIdx: Int, toIdx: Int, max: Double, min: Double, nIntervals: Int
   ): Array[Array[Double]] = {
 
     if (nIntervals <= 0) {
       return null
     }
 
-    val begIdx1 = if (begIdx < 0) 0 else begIdx
+    val begIdx1 = if (fromIdx < 0) 0 else fromIdx
 
     val interval = (max - min) / ((nIntervals - 1) * 1.0)
     val mass = new Array[Array[Double]](2, nIntervals)
@@ -342,7 +342,7 @@ object StatisticFunction {
       i += 1
     }
 
-    val lastIdx = math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(toIdx, values.size - 1)
     var total = 0.0
     i = begIdx1
     while (i <= lastIdx) {
@@ -367,21 +367,21 @@ object StatisticFunction {
    * Probability Density Function
    */
   def probMassWithTimeInfo(values: ArrayList[Double], weights: ArrayList[Double],
-                           begIdx: Int, endIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMassWithTimeInfo(values.toArray, weights.toArray, begIdx, endIdx, interval)
+                           fromIdx: Int, toIdx: Int, interval: Double
+  ): Array[Array[Double]] = probMassWithTimeInfo(values.toArray, weights.toArray, fromIdx, toIdx, interval)
   def probMassWithTimeInfo(values: Array[Double], weights: Array[Double],
-                           begIdx: Int, endIdx: Int, interval: Double
+                           fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
 
-    if (begIdx < 0 || interval <= 0) {
+    if (fromIdx < 0 || interval <= 0) {
       return null
     }
 
-    val maxmin1 = maxmin(values, begIdx, endIdx)
+    val maxmin1 = maxmin(values, fromIdx, toIdx)
     val max = maxmin1(MAX)
     val min = maxmin1(MIN)
     val nIntervals = (((max - min) / interval) + 1).toInt
-    val period1 = period(begIdx, endIdx).toDouble
+    val period1 = period(fromIdx, toIdx).toDouble
     val mass = new Array[Array[Double]](2, nIntervals)
     var i = 0
     while (i < nIntervals) {
@@ -390,9 +390,9 @@ object StatisticFunction {
       i += 1
     }
 
-    val lastIdx = math.min(endIdx, values.size - 1)
+    val lastIdx = math.min(toIdx, values.size - 1)
     var total = 0.0
-    i = begIdx
+    i = fromIdx
     while (i <= lastIdx) {
       val value = values(i)
       val weight = if (weights == null) 1f else weights(i)
@@ -410,9 +410,9 @@ object StatisticFunction {
 
     mass
   }
-
-  private def period(begIdx: Int, endIdx: Int): Int = {
-    endIdx - begIdx + 1
+  
+  private def period(fromIdx: Int, toIdx: Int): Int = {
+    toIdx - fromIdx + 1
   }
 
   private def lookback(idx: Int, period: Int): Int = {
