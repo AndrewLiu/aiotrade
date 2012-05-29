@@ -1,12 +1,13 @@
 package org.aiotrade.lib.math.stats
 
 /**
+ *
  * @author Caoyuan Deng
  */
 class GeneralizedLeastSquares(x: Array[Double], y: Array[Double], weight: Array[Double], order: Int) {
   assert(x != null && y != null && weight != null && x.length >= 2 && 
          x.length == y.length && x.length == weight.length && order >= 2, 
-         "Invald params")
+         "Invald params: x.length(>=2)=%s, y.length(=x.length)=%s, order(>=2)=%s".format(x.length, y.length, order))
   
   private var _coefficients: Array[Double] = _
   
