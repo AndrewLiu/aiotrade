@@ -10,7 +10,7 @@ import org.aiotrade.lib.util.actors.Reactor
  * @author Caoyuan Deng
  */
 class Benchmark(tradingService: TradingService) extends Reactor {
-  case class Profit(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
+  case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
     override 
@@ -31,8 +31,8 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   }
   
   var initialEquity = tradingService.accounts.foldLeft(0.0){(s, x) => s + x.initialEquity}
-  var profitRatio = 0.0
-  var annualizedProfitRatio = 0.0
+  var payoffRatio = 0.0
+  var annualizedPayoffRatio = 0.0
   private var lastEquity = 0.0
   private var maxEquity = Double.MinValue
   private var maxDrawdownEquity = Double.MaxValue
@@ -49,8 +49,8 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   private var secTransactions = Array[SecurityTransaction]()
   private var expTransactions = Array[ExpensesTransaction]()
   
-  var weeklyProfits: Array[Profit] = Array()
-  var monthlyProfits: Array[Profit] = Array()
+  var weeklyPayoffs: Array[Payoff] = Array()
+  var monthlyPayoffs: Array[Payoff] = Array()
   var rrr: Double = _
   var sharpeRatioOnWeek: Double = _
   var sharpeRatioOnMonth: Double = _
@@ -71,7 +71,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     if (initialEquity.isNaN) initialEquity = equity
 
     lastEquity = equity
-    profitRatio = equity / initialEquity - 1
+    payoffRatio = equity / initialEquity - 1
     
     tradingService.accounts foreach {
       case x: FutureAccount if x.availableFunds < 0 =>
@@ -83,14 +83,14 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   def report: String = {
     tradePeriod = daysBetween(tradeFromTime, tradeToTime)
-    annualizedProfitRatio = math.pow(1 + profitRatio, 365.24 / tradePeriod) - 1
-    rrr = annualizedProfitRatio / maxDrawdownRatio
+    annualizedPayoffRatio = math.pow(1 + payoffRatio, 365.24 / tradePeriod) - 1
+    rrr = annualizedPayoffRatio / maxDrawdownRatio
     
     val navs = toNavs(initialEquity, equities)
-    weeklyProfits = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
-    monthlyProfits = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
-    sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyProfits)
-    sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyProfits)
+    weeklyPayoffs = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
+    monthlyPayoffs = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
+    sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyPayoffs)
+    sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyPayoffs)
     
     val transactions = collectTransactions
     secTransactions = transactions._1
@@ -109,7 +109,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     }
   }
   
-  private def calcSharpeRatio(xs: Array[Profit]) = {
+  private def calcSharpeRatio(xs: Array[Payoff]) = {
     if (xs.length > 0) {
       var sum = 0.0
       var i = 0
@@ -183,21 +183,21 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     }
     
     if (reportTimes.length > 0) {
-      val profits = new ArrayList[Profit]
+      val payoffs = new ArrayList[Payoff]
  
       var i = 0
       while (i < reportTimes.length) {
         val time = reportTimes(i)
         val nav = reportNavs(i)
         val accRate = nav - 1
-        val periodRate = if (i > 0) nav / profits(i - 1).nav - 1 else nav / 1.0 - 1
-        profits += Profit(time, nav, accRate, periodRate, riskFreeRate)
+        val periodRate = if (i > 0) nav / payoffs(i - 1).nav - 1 else nav / 1.0 - 1
+        payoffs += Payoff(time, nav, accRate, periodRate, riskFreeRate)
         i += 1
       }
       
-      profits.toArray
+      payoffs.toArray
     } else {
-      Array[Profit]()
+      Array[Payoff]()
     }
   } 
   
@@ -252,8 +252,8 @@ class Benchmark(tradingService: TradingService) extends Reactor {
 
   override 
   def toString = {
-    val statWeekly  = calcStatistics(weeklyProfits)
-    val statMonthly = calcStatistics(monthlyProfits)
+    val statWeekly  = calcStatistics(weeklyPayoffs)
+    val statMonthly = calcStatistics(monthlyPayoffs)
     ;
     """
 ================ Benchmark Report -- %1$s ================
@@ -289,23 +289,23 @@ date            sec      quantity       price        amount
       tradeFromTime, tradeToTime, tradePeriod, times.length,
       initialEquity,
       lastEquity,
-      profitRatio * 100,
-      annualizedProfitRatio * 100,
+      payoffRatio * 100,
+      annualizedPayoffRatio * 100,
       maxDrawdownRatio * 100,
       rrr,
-      sharpeRatioOnWeek, weeklyProfits.length,
-      sharpeRatioOnMonth, monthlyProfits.length,
-      weeklyProfits.mkString("\n"),
+      sharpeRatioOnWeek, weeklyPayoffs.length,
+      sharpeRatioOnMonth, monthlyPayoffs.length,
+      weeklyPayoffs.mkString("\n"),
       statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
-      monthlyProfits.mkString("\n"),
+      monthlyPayoffs.mkString("\n"),
       statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
       marginCalls.mkString("\n"),
       secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
     )
   }
   
-  private def calcStatistics(profits: Array[Profit]) = {
-    val len = profits.length.toDouble
+  private def calcStatistics(payoffs: Array[Payoff]) = {
+    val len = payoffs.length.toDouble
     var sum = 0.0
     var max = Double.MinValue
     var min = Double.MaxValue
@@ -314,7 +314,7 @@ date            sec      quantity       price        amount
     var tie = 0
     var i = 0
     while (i < len) {
-      val periodRate = profits(i).periodRate
+      val periodRate = payoffs(i).periodRate
       sum += periodRate
       max = math.max(max, periodRate)
       min = math.min(min, periodRate)
@@ -328,7 +328,7 @@ date            sec      quantity       price        amount
     var devSum = 0.0
     i = 0
     while (i < len) {
-      val x = profits(i).periodRate - average
+      val x = payoffs(i).periodRate - average
       devSum += x * x
       i += 1
     }
