@@ -351,10 +351,10 @@ object Sector {
           sectorKeys ::= toKey(Category.Kind, Kind.Index)
         } else if (symbol.startsWith("009") || symbol.startsWith("010") || symbol.startsWith("020")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Treasury)
-        } else if (symbol.startsWith("600") || symbol.startsWith("601")) {
+        } else if (symbol.startsWith("60")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.AShare)
-        } else if (symbol.startsWith("900")) {
+        } else if (symbol.startsWith("90")) {
           sectorKeys ::= toKey(Category.Kind, Kind.Stock)
           sectorKeys ::= toKey(Category.Board, Board.BShare)
         } else if (symbol.startsWith("500") || symbol.startsWith("510")) {
