@@ -67,6 +67,14 @@ class DataInputStream(in: InputStream) extends FilterInputStream(in) with DataIn
   }
 
   @throws(classOf[IOException])
+  def readBytesString(len: Int, charSet: String): String = {
+    val bytes = new Array[Byte](len)
+    read(bytes)
+
+    new String(bytes, charSet)
+  }
+
+  @throws(classOf[IOException])
   def readUnsignedByte(): Int = {
     val ch = in.read()
     if (ch < 0)
