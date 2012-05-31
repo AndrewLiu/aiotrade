@@ -196,7 +196,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     param.publish(ReportData("Total", 0, closeTime, equity / initialEquity))
     param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / referSer.open(tradeStartIdx) - 1))
     
-    benchmark.at(closeTime, equity)
+    benchmark.at(closeTime, equity, referSer.close(idx))
 
     accounts foreach {account =>
       if (numAccounts > 1) {

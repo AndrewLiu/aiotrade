@@ -10,13 +10,13 @@ import org.aiotrade.lib.util.actors.Reactor
  * @author Caoyuan Deng
  */
 class Benchmark(tradingService: TradingService) extends Reactor {
-  case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double) {
+  case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double, referNav: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
     override 
     def toString = {
-      "%1$tY.%1$tm.%1$td \t %2$ 8.3f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%%".format(
-        new Date(time), nav, accRate * 100, periodRate * 100, riskFreeRate * 100, periodRateForSharpe * 100
+      "%1$tY.%1$tm.%1$td \t %2$ 8.3f \t %3$ 8.2f%% \t %4$ 8.2f%% \t %5$ 8.2f%% \t %6$ 8.2f%% \t %7$ 8.3f".format(
+        new Date(time), nav, accRate * 100, periodRate * 100, riskFreeRate * 100, periodRateForSharpe * 100, referNav
       )
     }
   }
@@ -45,6 +45,8 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   val times = new ArrayList[Long]
   val equities = new ArrayList[Double]()
+  val referIndices = new ArrayList[Double]()
+  private var initialReferIndex = Double.NaN
   private val marginCalls = ArrayList[MarginCall]
   private var secTransactions = Array[SecurityTransaction]()
   private var expTransactions = Array[ExpensesTransaction]()
@@ -61,14 +63,16 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   var reportDayOfWeek = Calendar.SATURDAY
   var reportDayOfMonth = 26
   
-  def at(time: Long, equity: Double) {
+  def at(time: Long, equity: Double, referIndex: Double) {
     times += time
     equities += equity
+    referIndices += referIndex
     
     if (tradeFromTime == Long.MinValue) tradeFromTime = time
     tradeToTime = time
     
     if (initialEquity.isNaN) initialEquity = equity
+    if (initialReferIndex.isNaN) initialReferIndex = referIndex
 
     lastEquity = equity
     payoffRatio = equity / initialEquity - 1
@@ -87,8 +91,9 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     rrr = annualizedPayoffRatio / maxDrawdownRatio
     
     val navs = toNavs(initialEquity, equities)
-    weeklyPayoffs = calcPeriodicReturns(times.toArray, navs)(getWeeklyReportTime)(weeklyRiskFreeRate)
-    monthlyPayoffs = calcPeriodicReturns(times.toArray, navs)(getMonthlyReportTime)(monthlyRiskFreeRate)
+    val referNavs = toNavs(initialReferIndex, referIndices)
+    weeklyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getWeeklyReportTime)(weeklyRiskFreeRate)
+    monthlyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getMonthlyReportTime)(monthlyRiskFreeRate)
     sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyPayoffs)
     sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyPayoffs)
     
@@ -133,11 +138,11 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     }
   }
   
-  private def toNavs(initalEquity: Double, equities: ArrayList[Double]) = {
-    val navs = Array.ofDim[Double](equities.length)
+  private def toNavs(initialValue: Double, values: ArrayList[Double]) = {
+    val navs = Array.ofDim[Double](values.length)
     var i = 0
-    while (i < equities.length) {
-      navs(i) = equities(i) / initialEquity
+    while (i < values.length) {
+      navs(i) = values(i) / initialValue
       i += 1
     }
     navs
@@ -146,17 +151,22 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   /**
    * navs Net Asset Value
    */
-  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double])(getPeriodicReportTimeFun: (Calendar, Int) => Long)(riskFreeRate: Double) = {
+  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double], referNavs: Array[Double])(getPeriodicReportTimeFun: (Calendar, Int) => Long)(riskFreeRate: Double) = {
     val reportTimes = new ArrayList[Long]()
     val reportNavs = new ArrayList[Double]()
+    val reportReferNavs = new ArrayList[Double]()
+    
     val now = Calendar.getInstance
-    var prevNav = 1.0
     var prevTime = 0L
+    var prevNav = 1.0
+    var prevReferNav = 1.0
     var reportTime = Long.MaxValue
     var i = 0
     while (i < times.length) {
       val time = times(i)
       val nav = navs(i)
+      val referNav = referNavs(i)
+
       now.setTimeInMillis(time)
       if (reportTime == Long.MaxValue) {
         reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
@@ -167,6 +177,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
         if (prevTime <= reportTime) {
           reportTimes += reportTime
           reportNavs += prevNav
+          reportReferNavs += prevReferNav
           reported = true
         }
         reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
@@ -175,23 +186,29 @@ class Benchmark(tradingService: TradingService) extends Reactor {
       if (!reported && i == times.length - 1) {
         reportTimes += getPeriodicReportTimeFun(now, reportDayOfWeek)
         reportNavs += nav
+        reportReferNavs += referNav
       }
       
       prevTime = time
       prevNav = nav
+      prevReferNav = referNav
       i += 1
     }
     
     if (reportTimes.length > 0) {
       val payoffs = new ArrayList[Payoff]
  
+      var prevNav = 1.0
       var i = 0
       while (i < reportTimes.length) {
         val time = reportTimes(i)
         val nav = reportNavs(i)
+        val referNav = reportReferNavs(i)
         val accRate = nav - 1
-        val periodRate = if (i > 0) nav / payoffs(i - 1).nav - 1 else nav / 1.0 - 1
-        payoffs += Payoff(time, nav, accRate, periodRate, riskFreeRate)
+        val periodRate = nav / prevNav - 1
+        payoffs += Payoff(time, nav, accRate, periodRate, riskFreeRate, referNav)
+        
+        prevNav = nav
         i += 1
       }
       
@@ -268,21 +285,21 @@ Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
 Sharpe Ratio on Months : %14$5.2f  (%15$s months)
 
 ================ Weekly Return ================
-date                  nav        accum      period    riskfree      sharpe
+date \u0009 nav \u0009 accum \u0009 period \u0009 riskfree \u0009 sharpe \u0009 refer
 %16$s
-Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev:%20$5.2f%%  Win:%21$5.2f%%  Loss:%22$5.2f%%  Tie:%23$5.2f%%
+Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev: %20$5.2f%%  Win: %21$5.2f%%  Loss: %22$5.2f%%  Tie: %23$5.2f%%
 
 ================ Monthly Return ================
-date                  nav        accum      period    riskfree      sharpe
+date \u0009 nav \u0009 accum \u0009 period \u0009 riskfree \u0009 sharpe \u0009 refer
 %24$s
-Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev:%28$5.2f%%  Win:%29$5.2f%%  Loss:%30$5.2f%%  Tie:%31$5.2f%%
+Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev: %28$5.2f%%  Win: %29$5.2f%%  Loss: %30$5.2f%%  Tie: %31$5.2f%%
     
 ================ Margin Call ================
 date           avaliableFunds           equity  positionEquity positionMargin
 %32$s
 
 ================ Executions ================
-date            sec      quantity       price        amount
+date \u0009 sec \u0009 quantity \u0009 price \u0009 amount
 %33$s
     """.format(
       tradingService.param,
