@@ -157,22 +157,32 @@ object GeneralizedLeastSquares {
   
   // --- simple test
   def main(args: Array[String]) {
-    val gls = new GeneralizedLeastSquares(
-      Array(2000,   2001,  2002, 2003,  2004,   2005,   2006,   2007,   2008), 
-      Array(37.84, 44.55, 45.74, 63.8, 76.67, 105.59, 178.48, 355.27, 409.92), 
-      Array(11, 12, 13, 14, 15, 16, 17, 18, 19),
-      2
-    )
-    val xs = gls.coefficients
-    println(xs.mkString(","))
-    println(gls.fit(2009))
+    val x1 = Array(187.1, 179.5, 157.0, 197.0, 239.4, 217.8, 227.1, 233.4, 242.0, 251.9, 230.0, 271.8)
+    val y1 = Array( 25.4,  22.8,  20.6,  21.8,  32.4,  24.4,  29.3,  27.9,  27.8,  34.2,  29.2,  30.0)
+    val gls1 = new GeneralizedLeastSquares(x1, y1, 2)
+    val coefs1 = gls1.coefficients
+    println("y = %s + %s * x".format(coefs1(0), coefs1(1))) // y = 3.412968396061506 + 0.10814137404983369 * x
+    
+    val x2 = Array[Double]( 2000,  2001,  2002,  2003,  2004,   2005,   2006,   2007,   2008)
+    val y2 = Array[Double](37.84, 44.55, 45.74, 63.80, 76.67, 105.59, 178.48, 355.27, 409.92)
+    val w2 = Array[Double]( 11.0,  12.0,  13.0,  14.0,  15.0,   16.0,   17.0,   18.0,   19.0)
+    val gls2 = new GeneralizedLeastSquares(x2, y2, w2, 2)
+    val coefs2 = gls2.coefficients
+    println("y = %s + %s * x".format(coefs2(0), coefs2(1)))
+    val ys2 = List(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010) map (x => gls2.fit(x))
+    println(ys2)
   }
 
   // --- simple test
   def testMultiLinear(args: Array[String]) {
     val r = multiLinearEquationGroup(
-      Array(Array(1,2,3,1), Array(2,0,1,0), Array(5,2,0,0), Array(7,1,1,0)),
-      Array(18,5,9,12)
+      Array(
+        Array(1, 2, 3, 1), 
+        Array(2, 0, 1, 0), 
+        Array(5, 2, 0, 0), 
+        Array(7, 1, 1, 0)
+      ),
+      Array(18, 5, 9, 12)
     )
     println(r.mkString(","))
   }
