@@ -13,4 +13,6 @@
 
 .default-color0.chart-series-line { -fx-stroke: #e9967a; }
 .default-color1.chart-series-line { -fx-stroke: #dda0dd; }
-.default-color2.chart-series-line { -fx-stroke: #f0e68c; }
+.default-color2.chart-series-line { -fx-stroke: #0181e2; }
+.default-color3.chart-series-line { -fx-stroke: #f0e68c; }
+

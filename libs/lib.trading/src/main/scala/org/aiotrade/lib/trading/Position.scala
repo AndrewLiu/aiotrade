@@ -3,7 +3,7 @@ package org.aiotrade.lib.trading
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 
-class Position private (var _account: Account, private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
+class Position private (var _account: TradableAccount, private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
   def this() = this(null, Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
 
   private var _subPositions: ArrayList[Position] = null
@@ -88,14 +88,14 @@ class Position private (var _account: Account, private var _time: Long, private 
 }
 
 object Position {
-  def apply(account: Account, time: Long, sec: Sec, quantity: Double, price: Double) = new Position(account, time, sec, quantity, price)
+  def apply(account: TradableAccount, time: Long, sec: Sec, quantity: Double, price: Double) = new Position(account, time, sec, quantity, price)
   def apply() = new Position(null, Long.MinValue, null, Double.NaN, Double.NaN)
 }
 
 trait PositionEvent {
-  def account: Account
+  def account: TradableAccount
   def position: Position
 }
-case class PositionOpened(val account: Account, val position: Position) extends PositionEvent
-case class PositionClosed(val account: Account, val position: Position) extends PositionEvent
-case class PositionChanged(val account: Account, val position: Position) extends PositionEvent
+case class PositionOpened(val account: TradableAccount, val position: Position) extends PositionEvent
+case class PositionClosed(val account: TradableAccount, val position: Position) extends PositionEvent
+case class PositionChanged(val account: TradableAccount, val position: Position) extends PositionEvent

@@ -8,34 +8,42 @@ import java.util.Locale
 import java.util.UUID
 import scala.collection.mutable
 
-abstract class Account(val description: String, protected var _balance: Double, val tradingRule: TradingRule, 
+abstract class Account(val description: String, protected var _balance: Double, 
                        val currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Publisher {
   
   val id = UUID.randomUUID.getMostSignificantBits
   
   protected val _transactions = new ArrayList[TradeTransaction]()
-  protected val _secToPosition = new mutable.HashMap[Sec, Position]()
   
   val initialEquity = _balance
   def balance = _balance
   def credit(funds: Double) {_balance += funds}
   def debit (funds: Double) {_balance -= funds}
 
-  def positions = _secToPosition
   def transactions = _transactions.toArray
 
-  def positionGainLoss: Double
-  def positionEquity: Double
   def equity: Double
   def availableFunds: Double
-  def calcFundsToOpen(quantity: Double, price: Double): Double
-  def processFillingOrder(time: Long, order: Order)
 }
 
-class StockAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
+abstract class TradableAccount($description: String, $balance: Double, 
+                               $currency: Currency = Currency.getInstance(Locale.getDefault)
+) extends Account($description, $balance, $currency) {
+  protected val _secToPosition = new mutable.HashMap[Sec, Position]()
+
+  def positions = _secToPosition
+  def positionGainLoss: Double
+  def positionEquity: Double
+  def calcFundsToOpen(quantity: Double, price: Double): Double
+  def processFillingOrder(time: Long, order: Order)
+
+  def tradingRule: TradingRule
+}
+
+class StockAccount($description: String, $balance: Double, val tradingRule: TradingRule, 
                    $currency: Currency = Currency.getInstance(Locale.getDefault)
-) extends Account($description, $balance, $tradingRule, $currency) {
+) extends TradableAccount($description, $balance, $currency) {
 
   def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
   def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
@@ -92,9 +100,9 @@ class StockAccount($description: String, $balance: Double, $tradingRule: Trading
   )
 }
 
-class FutureAccount($description: String, $balance: Double, $tradingRule: TradingRule, 
+class FutureAccount($description: String, $balance: Double, val tradingRule: TradingRule, 
                     $currency: Currency = Currency.getInstance(Locale.getDefault)
-) extends Account($description, $balance, $tradingRule, $currency) {
+) extends TradableAccount($description, $balance, $currency) {
   
   def riskLevel = positionMargin / equity * 100
   def positionMargin = positionEquity * tradingRule.marginRate
@@ -160,4 +168,18 @@ class FutureAccount($description: String, $balance: Double, $tradingRule: Tradin
   def toString = "%1$s, availableFunds=%2$.0f, equity=%3$.0f, positionEquity=%4$.0f, positionMargin=%5$.0f, risk=%6$.2f%%, positions=%7$s".format(
     description, availableFunds, equity, positionEquity, positionMargin, riskLevel, positions.values.map(_.quantity).mkString("(", ",", ")")
   )
+}
+
+class CashAccount($description: String, $balance: Double,
+                  $currency: Currency = Currency.getInstance(Locale.getDefault)
+) extends Account($description, $balance, $currency) {
+
+  def equity = _balance
+  def availableFunds = _balance
+
+  override 
+  def toString = "%1$s, availableFunds=%2$.0f".format(
+    description, availableFunds
+  )
+
 }

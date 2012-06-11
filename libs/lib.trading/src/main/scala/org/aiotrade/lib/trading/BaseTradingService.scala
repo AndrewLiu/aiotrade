@@ -20,6 +20,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
 ) extends TradingService {
   protected val log = Logger.getLogger(this.getClass.getName)
   
+  val tradableAccounts = (accounts filter (_.isInstanceOf[TradableAccount])).asInstanceOf[List[TradableAccount]]
+  val cashAccounts = (accounts filter (_.isInstanceOf[CashAccount])).asInstanceOf[List[CashAccount]]
+  
   val benchmark = new Benchmark(this)
   
   protected val timestamps = referSer.timestamps.clone
@@ -89,7 +92,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   protected def positionOf(sec: Sec): Option[Position] = {
-    accounts find (_.positions.contains(sec)) map (_.positions(sec))
+    tradableAccounts find (_.positions.contains(sec)) map (_.positions(sec))
   }
   
   protected def buy(sec: Sec): OrderCompose = {
@@ -164,7 +167,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   protected def updatePositionsPrice {
     for {
-      account <- accounts
+      account <- tradableAccounts
       (sec, position) <- account.positions
       ser <- sec.serOf(freq)
       idx = ser.indexOfOccurredTime(closeTime) if idx >= 0
@@ -211,7 +214,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   protected def checkStopCondition {
     for {
-      account <- accounts
+      account <- tradableAccounts
       (sec, position) <- account.positions
     } {
       if (account.tradingRule.cutLossRule(position)) {
@@ -309,7 +312,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       // We should iterate through each account of accounts instead of account in newOpenCloseOrders 
       // to make sure orders of each account are updated. 
       // @Note newOpenCloseOrders may be empty
-      for (account <- accounts) {
+      for (account <- tradableAccounts) {
         val (openingOrdersx, closingOrdersx) = newOpenCloseOrders.getOrElse(account, (Nil, Nil))
         openingOrders(account) = openingOrdersx
         closingOrders(account) = closingOrdersx
@@ -323,7 +326,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
    * Adjust orders for expenses etc, by reducing quantities (or number of orders @todo)
    * @Note Iterable has no method of sortBy, that why use List here instead of Set etc
    */
-  protected def adjustOpeningOrders(account: Account, openingOrders: List[Order]) {
+  protected def adjustOpeningOrders(account: TradableAccount, openingOrders: List[Order]) {
     var orders = openingOrders.sortBy(_.price) 
     var amount = 0.0
     while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
@@ -337,7 +340,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     }
   }
   
-  protected def calcTotalFundsToOpen(account: Account, orders: List[Order]) = {
+  protected def calcTotalFundsToOpen(account: TradableAccount, orders: List[Order]) = {
     orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.quantity, x.price)}
   }
    
@@ -355,14 +358,14 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   class OrderCompose(val sec: Sec, val side: OrderSide, referIdxAtDecision: Int) {
     val ser = sec.serOf(freq).get
-    private var _account = accounts.head // default account
+    private var _account = tradableAccounts.head // default account
     private var _price = Double.NaN
     private var _funds = Double.NaN
     private var _quantity = Double.NaN
     private var _afterIdx = 0
 
     def account = _account
-    def using(account: Account) = {
+    def using(account: TradableAccount) = {
       _account = account
       this
     }
