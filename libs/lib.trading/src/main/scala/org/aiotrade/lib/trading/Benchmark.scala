@@ -82,7 +82,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
         marginCalls += MarginCall(time, x.availableFunds, x.equity, x.positionEquity, x.positionMargin)
       case _ =>
     }
-    calcMaxDropdown(equity)
+    calcMaxDrawdown(equity)
   }
   
   def report: String = {
@@ -104,7 +104,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     toString
   }
   
-  private def calcMaxDropdown(equity: Double) {
+  private def calcMaxDrawdown(equity: Double) {
     if (equity > maxEquity) {
       maxEquity = math.max(equity, maxEquity)
       maxDrawdownEquity = equity
