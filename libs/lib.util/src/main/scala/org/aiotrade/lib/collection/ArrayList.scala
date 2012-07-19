@@ -92,6 +92,7 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @param xs  the itertable object.
    */
+  override
   def ++(xs: TraversableOnce[A]): this.type =  {
     val len = xs match {
       case xs: IndexedSeq[A] => xs.length
@@ -131,6 +132,7 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @param elem  the element to append.
    */
+  
   def +:(elem: A): this.type = {
     ensureSize(size0 + 1)
     copy(0, 1, size0)
