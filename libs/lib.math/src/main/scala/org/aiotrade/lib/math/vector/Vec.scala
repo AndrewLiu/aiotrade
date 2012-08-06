@@ -178,5 +178,5 @@ trait Vec extends Cloneable {
     
   def checkValidation: Boolean
 
-  override def clone: Vec = {super.clone; this}
+  override def clone: Vec = super.clone.asInstanceOf[Vec]
 }

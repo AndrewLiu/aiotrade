@@ -246,6 +246,6 @@ abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
    * @cloneable instead of java.lang.Object#clone
    */
   override 
-  def clone: TStamps = {super.clone; this}
+  def clone: TStamps = super.clone.asInstanceOf[TStamps]
 }
 
