@@ -150,12 +150,9 @@ class DataInputStream(in: InputStream) extends FilterInputStream(in) with DataIn
     throw new RuntimeException("Unsupported operation.")
   }
 
-  /**
-   * Used to read description, the length is fixed of 178 bytes
-   */
   @throws(classOf[IOException])
-  def readUTF(): String = {
-    val buf = new Array[Byte](178)
+  def readUTF(length: Int): String = {
+    val buf = new Array[Byte](length)
     readFully(buf)
     val len = buf.indexOf(0)
     val bytes = new Array[Byte](len)
@@ -163,6 +160,14 @@ class DataInputStream(in: InputStream) extends FilterInputStream(in) with DataIn
     new String(bytes, "GB2312")
   }
 
+  /**
+   * Used to read description, the length is fixed of 178 bytes
+   */
+  @throws(classOf[IOException])
+  def readUTF(): String = {
+    readUTF(178)
+  }
+  
   private val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"))
   def readDate(): Long = {
     val i = readInt
