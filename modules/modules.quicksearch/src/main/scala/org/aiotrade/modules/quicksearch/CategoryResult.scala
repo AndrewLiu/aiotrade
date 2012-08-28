@@ -41,7 +41,6 @@ package org.aiotrade.modules.quicksearch
 
 import java.awt.EventQueue
 import javax.swing.SwingUtilities
-import org.aiotrade.modules.quicksearch.ResultsModel.ItemResult
 import org.openide.util.NbBundle
 import scala.collection.mutable.ArrayBuffer
 

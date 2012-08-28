@@ -57,7 +57,7 @@ import org.aiotrade.spi.quicksearch.SearchRequest
  *
  * @author Jan Becicka
  */
-object ResultsModel extends AbstractListModel with ActionListener {
+object ResultsModel extends AbstractListModel[ItemResult] with ActionListener {
   /** Amount of time during which model has to be unchanged in order to fire
    * changes to listeners. */
   val COALESCE_TIME = 200
@@ -94,7 +94,7 @@ object ResultsModel extends AbstractListModel with ActionListener {
     size
   }
 
-  def getElementAt(index: Int): Object = {
+  def getElementAt(index: Int): ItemResult = {
     if (_content == null) {
       return null
     }
@@ -137,54 +137,55 @@ object ResultsModel extends AbstractListModel with ActionListener {
     fireContentsChanged(this, 0, getSize)
   }
 
-  case class ItemResult(category: CategoryResult, private val sRequest: SearchRequest, action: Runnable,
-                        private val $displayName: String,
-                        shortcut: List[_ <: KeyStroke], displayHint: String,
-                        //time of last access, used for recent searches
-                        var date: Date) {
+}
 
-    private val HTML = "<html>"
+case class ItemResult(category: CategoryResult, private val sRequest: SearchRequest, action: Runnable,
+                      private val $displayName: String,
+                      shortcut: List[_ <: KeyStroke], displayHint: String,
+                      //time of last access, used for recent searches
+                      var date: Date) {
 
-    val displayName = if (sRequest != null) highlightSubstring($displayName, sRequest) else $displayName
+  private val HTML = "<html>"
 
-    def this(category: CategoryResult, sRequest: SearchRequest, action: Runnable, displayName: String) = {
-      this(category, sRequest, action, displayName, null, null, null)
+  val displayName = if (sRequest != null) highlightSubstring($displayName, sRequest) else $displayName
+
+  def this(category: CategoryResult, sRequest: SearchRequest, action: Runnable, displayName: String) = {
+    this(category, sRequest, action, displayName, null, null, null)
+  }
+
+  def this(category: CategoryResult, action: Runnable, displayName: String, date: Date) = {
+    this(category, null, action, displayName, null, null, date)
+  }
+
+  def this(category: CategoryResult, sRequest: SearchRequest, action: Runnable, displayName: String,
+           shortcut: List[_ <: KeyStroke], displayHint: String) = {
+    this(category, sRequest, action, displayName, shortcut, displayHint, null)
+  }
+
+  private def highlightSubstring(text: String, sRequest: SearchRequest): String = {
+    if (text.startsWith(HTML)) {
+      // provider handles highliting itself, okay
+      return text
+    }
+    // try to find substring
+    val searchedText = sRequest.text
+    val index = text.toLowerCase.indexOf(searchedText.toLowerCase)
+    if (index == -1) {
+      return text
+    }
+    // found, bold it
+    val endIndex = index + searchedText.length
+    val sb = new StringBuilder(HTML)
+    if (index > 0) {
+      sb.append(text.substring(0, index))
+    }
+    sb.append("<b>")
+    sb.append(text.substring(index, endIndex))
+    sb.append("</b>")
+    if (endIndex < text.length) {
+      sb.append(text.substring(endIndex, text.length))
     }
 
-    def this(category: CategoryResult, action: Runnable, displayName: String, date: Date) = {
-      this(category, null, action, displayName, null, null, date)
-    }
-
-    def this(category: CategoryResult, sRequest: SearchRequest, action: Runnable, displayName: String,
-             shortcut: List[_ <: KeyStroke], displayHint: String) = {
-      this(category, sRequest, action, displayName, shortcut, displayHint, null)
-    }
-
-    private def highlightSubstring(text: String, sRequest: SearchRequest): String = {
-      if (text.startsWith(HTML)) {
-        // provider handles highliting itself, okay
-        return text
-      }
-      // try to find substring
-      val searchedText = sRequest.text
-      val index = text.toLowerCase.indexOf(searchedText.toLowerCase)
-      if (index == -1) {
-        return text
-      }
-      // found, bold it
-      val endIndex = index + searchedText.length
-      val sb = new StringBuilder(HTML)
-      if (index > 0) {
-        sb.append(text.substring(0, index))
-      }
-      sb.append("<b>")
-      sb.append(text.substring(index, endIndex))
-      sb.append("</b>")
-      if (endIndex < text.length) {
-        sb.append(text.substring(endIndex, text.length))
-      }
-
-      sb.toString
-    }
+    sb.toString
   }
 }

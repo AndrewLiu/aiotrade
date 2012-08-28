@@ -41,7 +41,7 @@ package org.aiotrade.spi.quicksearch;
 
 import javax.swing.KeyStroke;
 import org.aiotrade.modules.quicksearch.CategoryResult;
-import org.aiotrade.modules.quicksearch.ResultsModel;
+import org.aiotrade.modules.quicksearch.ItemResult;
     
 /**
  * Response object for collecting results of {@link SearchProvider#evaluate} search
@@ -111,7 +111,7 @@ class SearchResponse(catResult: CategoryResult, sRequest: SearchRequest) {
    */
   def addResult(action: Runnable, htmlDisplayName: String,
                 displayHint: String, shortcut: List[_ <: KeyStroke]): Boolean = {
-    catResult.addItem(new ResultsModel.ItemResult(catResult, sRequest, action, htmlDisplayName, shortcut, displayHint))
+    catResult.addItem(new ItemResult(catResult, sRequest, action, htmlDisplayName, shortcut, displayHint))
   }
 
 }

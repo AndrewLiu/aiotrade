@@ -63,7 +63,6 @@ import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.aiotrade.modules.quicksearch.recent.RecentSearches;
-import org.aiotrade.modules.quicksearch.ResultsModel.ItemResult;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import org.openide.util.Task;
@@ -79,7 +78,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
                                                                  with TaskListener
                                                                  with Runnable {
   private val jScrollPane1 = new JScrollPane
-  private val jList1 = new JList
+  private val jList1 = new JList[ItemResult]
   private val statusPanel = new JPanel
   private val searchingSep = new JSeparator
   private val searchingLabel = new JLabel
@@ -114,7 +113,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
   updateStatusPanel
 
   def invoke {
-    val result = jList1.getModel.getElementAt(jList1.getSelectedIndex).asInstanceOf[ItemResult]
+    val result = jList1.getModel.getElementAt(jList1.getSelectedIndex)
     if (result != null) {
       RecentSearches().add(result)
       result.action.run
@@ -136,7 +135,7 @@ class QuickSearchPopup(comboBar: AbstractQuickSearchComboBar) extends JPanel
     }
   }
 
-  def getList: JList = {
+  def getList: JList[ItemResult] = {
     jList1
   }
 

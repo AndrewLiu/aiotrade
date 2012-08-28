@@ -52,7 +52,6 @@ import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import org.aiotrade.modules.quicksearch.ResultsModel.ItemResult;
 import org.openide.util.Utilities;
 
 /**
@@ -119,7 +118,7 @@ object SearchResultRender {
   }
 }
 
-class SearchResultRender(popup: QuickSearchPopup) extends JLabel with ListCellRenderer {
+class SearchResultRender(popup: QuickSearchPopup) extends JLabel with ListCellRenderer[ItemResult] {
   import SearchResultRender._
   
   private val IS_GTK = UIManager.getLookAndFeel.getID == "GTK" //NOI18N
@@ -132,12 +131,8 @@ class SearchResultRender(popup: QuickSearchPopup) extends JLabel with ListCellRe
 
   configRenderer
 
-  def getListCellRendererComponent(list: JList, value: Object, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component = {
-    if (!value.isInstanceOf[ItemResult]) {
-      return null
-    }
-
-    val ir = value.asInstanceOf[ItemResult]
+  def getListCellRendererComponent(list: JList[_ <: ItemResult], value: ItemResult, index: Int, isSelected: Boolean, cellHasFocus: Boolean): Component = {
+    val ir = value
     val shortcut = ir.shortcut
     resultLabel.setText(ir.displayName)
     truncateLabel(resultLabel)

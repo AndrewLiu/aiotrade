@@ -4,7 +4,7 @@ AIOTrade
 
 ### Requirement
     
-* Java 1.6 (Java 1.7 not supported yet)
+* Java 1.7+ (Java 1.6 is not supported any more)
 * JavaFX 2.0
 * Maven 2.x/3.x
 * NetBeans 7.1

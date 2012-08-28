@@ -59,7 +59,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 import org.aiotrade.modules.quicksearch.ProviderModel.Category
-import org.aiotrade.modules.quicksearch.ResultsModel.ItemResult
 import org.openide.util.NbBundle;
 import org.openide.util.Utilities;
 import org.openide.windows.TopComponent;
@@ -209,7 +208,7 @@ abstract class AbstractQuickSearchComboBar(val keyStroke: KeyStroke) extends JPa
   /** Actually invokes action selected in the results list */
   def invokeSelectedItem {
     val list = displayer.getList
-    val ir = list.getSelectedValue.asInstanceOf[ItemResult]
+    val ir = list.getSelectedValue
 
     // special handling of invocation of "more results item" (three dots)
     if (ir != null) {

@@ -44,7 +44,7 @@ import java.util.Date;
 import java.util.prefs.Preferences;
 import org.aiotrade.modules.quicksearch.CommandEvaluator;
 import org.aiotrade.modules.quicksearch.ResultsModel;
-import org.aiotrade.modules.quicksearch.ResultsModel.ItemResult;
+import org.aiotrade.modules.quicksearch.ItemResult;
 import org.openide.util.Exceptions;
 import org.openide.util.NbPreferences;
 import scala.collection.mutable.ArrayBuffer
@@ -158,7 +158,7 @@ class RecentSearches private () {
         var i = 0
         var break = false
         while (i < rSize && !break) {
-          val res = model.getElementAt(i).asInstanceOf[ItemResult]
+          val res = model.getElementAt(i)
           if (stripHTMLnames(res.displayName) == stripHTMLnames(name)) {
             action = res.action
             if (!action.isInstanceOf[FakeAction]) {
