@@ -92,8 +92,8 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     
     val navs = toNavs(initialEquity, equities)
     val referNavs = toNavs(initialReferIndex, referIndices)
-    weeklyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getWeeklyReportTime)(weeklyRiskFreeRate)
-    monthlyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getMonthlyReportTime)(monthlyRiskFreeRate)
+    weeklyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getWeeklyReportTime(reportDayOfWeek))(weeklyRiskFreeRate)
+    monthlyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getMonthlyReportTime(reportDayOfMonth))(monthlyRiskFreeRate)
     sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyPayoffs)
     sharpeRatioOnMonth = math.sqrt(12) * calcSharpeRatio(monthlyPayoffs)
     
@@ -151,7 +151,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   /**
    * navs Net Asset Value
    */
-  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double], referNavs: Array[Double])(getPeriodicReportTimeFun: (Calendar, Int) => Long)(riskFreeRate: Double) = {
+  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double], referNavs: Array[Double])(getPeriodicReportTimeFun: (Calendar) => Long)(riskFreeRate: Double) = {
     val reportTimes = new ArrayList[Long]()
     val reportNavs = new ArrayList[Double]()
     val reportReferNavs = new ArrayList[Double]()
@@ -169,7 +169,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
 
       now.setTimeInMillis(time)
       if (reportTime == Long.MaxValue) {
-        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
+        reportTime = getPeriodicReportTimeFun(now)
       }
       
       var reported = false
@@ -180,11 +180,11 @@ class Benchmark(tradingService: TradingService) extends Reactor {
           reportReferNavs += prevReferNav
           reported = true
         }
-        reportTime = getPeriodicReportTimeFun(now, reportDayOfWeek)
+        reportTime = getPeriodicReportTimeFun(now)
       }
       
       if (!reported && i == times.length - 1) {
-        reportTimes += getPeriodicReportTimeFun(now, reportDayOfWeek)
+        reportTimes += getPeriodicReportTimeFun(now)
         reportNavs += nav
         reportReferNavs += referNav
       }
@@ -220,9 +220,9 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   /**
    * @param the current date calendar
-   * @param the day of month of settlement, last day of each month if -1 
+   * @param the day of month of settlement, last day of each week if -1 
    */
-  private def getWeeklyReportTime(now: Calendar, _reportDayOfWeek: Int = -1) = {
+  private def getWeeklyReportTime(_reportDayOfWeek: Int = -1)(now: Calendar) = {
     val reportDayOfWeek = if (_reportDayOfWeek == -1) {
       Calendar.SATURDAY
     } else _reportDayOfWeek
@@ -239,7 +239,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
    * @param the current date calendar
    * @param the day of month of settlement, last day of each month if -1 
    */
-  private def getMonthlyReportTime(now: Calendar, _reportDayOfMonth: Int = -1) = {
+  private def getMonthlyReportTime(_reportDayOfMonth: Int = -1)(now: Calendar) = {
     val reportDayOfMonth = if (_reportDayOfMonth == -1) {
       now.getActualMaximum(Calendar.DAY_OF_MONTH)
     } else _reportDayOfMonth
