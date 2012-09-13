@@ -60,7 +60,7 @@ import scala.collection.mutable
  * @author Caoyuan Deng
  */
 @serializable @cloneable
-class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extends LightTicker($data) {
+final class Ticker($data: Array[Double], private var _marketDepth: MarketDepth) extends LightTicker($data) {
 
   def this(depth: Int) = this(new Array[Double](LightTicker.FIELD_LENGTH), new MarketDepth(new Array[Double](depth * 4)))
   def this() = this(5)

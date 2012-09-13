@@ -135,51 +135,51 @@ trait OrderRoute {
   def name: String
 }
 
-abstract class OrderSide(val name: String)
+sealed abstract class OrderSide(val name: String)
 object OrderSide {
-  case object Buy extends OrderSide("Buy")
-  case object Sell extends OrderSide("Sell")
-  case object SellShort extends OrderSide("SellShort")
-  case object BuyCover extends OrderSide("BuyCover")
+  final case object Buy extends OrderSide("Buy")
+  final case object Sell extends OrderSide("Sell")
+  final case object SellShort extends OrderSide("SellShort")
+  final case object BuyCover extends OrderSide("BuyCover")
 }
 
-abstract class OrderType(val name: String)
+sealed abstract class OrderType(val name: String)
 object OrderType {
-  case object Market extends OrderType("Market")
-  case object Limit extends OrderType("Limit")
-  case object Stop extends OrderType("Stop")
-  case object StopLimit extends OrderType("StopLimit")
+  final case object Market extends OrderType("Market")
+  final case object Limit extends OrderType("Limit")
+  final case object Stop extends OrderType("Stop")
+  final case object StopLimit extends OrderType("StopLimit")
 }
 
-abstract class OrderValidity(val name: String)
+sealed abstract class OrderValidity(val name: String)
 object OrderValidity {
-  case object Day extends OrderValidity("Day")
-  case object ImmediateOrCancel extends OrderValidity("ImmediateOrCancel")
-  case object AtOpening extends OrderValidity("AtOpening")
-  case object AtClosing extends OrderValidity("AtClosing")
-  case object GoodTillCancel extends OrderValidity("GoodTillCancel")
-  case object GoodTillDate extends OrderValidity("GoodTillDate")
+  final case object Day extends OrderValidity("Day")
+  final case object ImmediateOrCancel extends OrderValidity("ImmediateOrCancel")
+  final case object AtOpening extends OrderValidity("AtOpening")
+  final case object AtClosing extends OrderValidity("AtClosing")
+  final case object GoodTillCancel extends OrderValidity("GoodTillCancel")
+  final case object GoodTillDate extends OrderValidity("GoodTillDate")
 }
 
-abstract class OrderStatus(val name: String)
+sealed abstract class OrderStatus(val name: String)
 object OrderStatus {
-  case object New extends OrderStatus("New")
-  case object PendingNew extends OrderStatus("PendingNew")
-  case object Partial extends OrderStatus("Partial")
-  case object Filled extends OrderStatus("Filled")
-  case object Canceled extends OrderStatus("Canceled")
-  case object Rejected extends OrderStatus("Rejected")
-  case object PendingCancel extends OrderStatus("PendingCancel")
-  case object Expired extends OrderStatus("Expired")
+  final case object New extends OrderStatus("New")
+  final case object PendingNew extends OrderStatus("PendingNew")
+  final case object Partial extends OrderStatus("Partial")
+  final case object Filled extends OrderStatus("Filled")
+  final case object Canceled extends OrderStatus("Canceled")
+  final case object Rejected extends OrderStatus("Rejected")
+  final case object PendingCancel extends OrderStatus("PendingCancel")
+  final case object Expired extends OrderStatus("Expired")
 }
 
-trait OrderEvent {
+sealed trait OrderEvent {
   def order: Order
 }
 object OrderEvent {
-  case class Completed(order: Order) extends OrderEvent
-  case class IdChanged(order: Order, oldValue: String, value: String) extends OrderEvent
-  case class StatusChanged(order: Order, oldValue: OrderStatus, value: OrderStatus) extends OrderEvent
-  case class FilledQuantityChanged(order: Order, oldValue: Double, value: Double) extends OrderEvent
-  case class AveragePriceChanged(order: Order, oldValue: Double, value: Double) extends OrderEvent 
+  final case class Completed(order: Order) extends OrderEvent
+  final case class IdChanged(order: Order, oldValue: String, value: String) extends OrderEvent
+  final case class StatusChanged(order: Order, oldValue: OrderStatus, value: OrderStatus) extends OrderEvent
+  final case class FilledQuantityChanged(order: Order, oldValue: Double, value: Double) extends OrderEvent
+  final case class AveragePriceChanged(order: Order, oldValue: Double, value: Double) extends OrderEvent 
 }

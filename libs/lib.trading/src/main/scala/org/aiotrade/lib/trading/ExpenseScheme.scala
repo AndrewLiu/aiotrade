@@ -21,13 +21,13 @@ object NoExpensesScheme extends ExpenseScheme {
   def toString = "None expenses scheme"
 }
 
-case class SimpleFixedScheme(expenses: Double = 9.95) extends ExpenseScheme {
+final case class SimpleFixedScheme(expenses: Double = 9.95) extends ExpenseScheme {
   def getOpeningExpenses(quantity: Double, averagePrice: Double) = expenses
   def getClosingExpenses(quantity: Double, averagePrice: Double) = expenses
 }
 
 
-case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximum: Double) extends ExpenseScheme {
+final case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximum: Double) extends ExpenseScheme {
 
   def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = quantity * averagePrice / 100.0 * percentage
@@ -59,7 +59,7 @@ case class LimitedProportionalScheme(percentage: Double, minimum: Double, maximu
  * @param level2 = 0.005
  * @param minimum = 1.0
  */
-case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level2: Double, minimum: Double) extends ExpenseScheme {
+final case class TwoLevelsPerShareScheme(level1: Double, level1quantity: Double, level2: Double, minimum: Double) extends ExpenseScheme {
 
   def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     var expenses = level1 * (if (quantity > level1quantity) level1quantity else quantity)
@@ -108,10 +108,10 @@ abstract class ChinaExpenseScheme extends ExpenseScheme {
   }
 }
 
-case class ShanghaiExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 1.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
-case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 0.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
+final case class ShanghaiExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 1.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
+final case class ShenzhenExpenseScheme(brokerageRate: Double, stamptaxRate: Double = 0.001, transferFee: Double = 0.0, minimumBrokerageFee: Double = 5.0) extends ChinaExpenseScheme
 
-case class ChinaFinancialFuturesScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.000050) extends ExpenseScheme {
+final case class ChinaFinancialFuturesScheme(brokerageRate: Double = 0.0001, stamptaxRate: Double = 0.000050) extends ExpenseScheme {
   
   def getOpeningExpenses(quantity: Double, averagePrice: Double): Double = {
     val amount = quantity * averagePrice

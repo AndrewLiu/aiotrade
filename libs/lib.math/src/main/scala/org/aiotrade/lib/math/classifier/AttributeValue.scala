@@ -5,7 +5,7 @@ package org.aiotrade.lib.math.classifier
  * @author Caoyuan Deng
  */
 @cloneable
-case class AttributeValue[+T](value: T) {
+final case class AttributeValue[+T](value: T) {
   private var _count = 0
 
   def count = _count

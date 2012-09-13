@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-class SecIssue extends BelongsToSec {
+final class SecIssue extends BelongsToSec {
   var par: Double = _
   var price: Double = _
   var totalShare: Long = _

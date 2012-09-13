@@ -173,24 +173,24 @@ object YahooTickerServer extends TickerServer with Singleton {
               log.warning("time of ticker: " + symbol + " is 0!")
             }
 
-            val tickerSnapshot = tickerSnapshotOf(symbol)
-            tickerSnapshot.time = time
-            tickerSnapshot.isChanged = false
-            tickerSnapshot.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
-            tickerSnapshot.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
-            tickerSnapshot.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble
-            tickerSnapshot.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toDouble
-            tickerSnapshot.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toDouble
-            tickerSnapshot.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toDouble
-            tickerSnapshot.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
-            tickerSnapshot.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
-            tickerSnapshot.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
-            log.fine("tickerSnapshot : "+ tickerSnapshot.toLightTicker.toString)
-            log.fine("tickerSnapshot.isChanged : " + tickerSnapshot.isChanged + ", subscribedSrcSymbols.contains " + symbol + ": " + this.subscribedSrcSymbols.contains(symbol))
-            if (tickerSnapshot.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
+            val snapTicker = snapTickerOf(symbol)
+            snapTicker.time = time
+            snapTicker.isChanged = false
+            snapTicker.prevClose = if (prevCloseX.equalsIgnoreCase("N/A")) 0 else prevCloseX.trim.toDouble
+            snapTicker.lastPrice = if (lastPriceX.equalsIgnoreCase("N/A")) 0 else lastPriceX.trim.toDouble
+            snapTicker.dayChange = if (dayChangeX.equalsIgnoreCase("N/A")) 0 else dayChangeX.trim.toDouble
+            snapTicker.dayOpen   = if (dayOpenX.equalsIgnoreCase("N/A")) 0 else dayOpenX.trim.toDouble
+            snapTicker.dayHigh   = if (dayHighX.equalsIgnoreCase("N/A")) 0 else dayHighX.trim.toDouble
+            snapTicker.dayLow    = if (dayLowX.equalsIgnoreCase("N/A")) 0 else dayLowX.trim.toDouble
+            snapTicker.dayVolume = if (dayVolumeX.equalsIgnoreCase("N/A")) 0 else dayVolumeX.trim.toDouble
+            snapTicker.setBidPrice(0, if (bidPriceX1.equalsIgnoreCase("N/A")) 0 else bidPriceX1.trim.toDouble)
+            snapTicker.setAskPrice(0, if (askPriceX1.equalsIgnoreCase("N/A")) 0 else askPriceX1.trim.toDouble)
+            log.fine("tickerSnapshot : "+ snapTicker.toLightTicker.toString)
+            log.fine("tickerSnapshot.isChanged : " + snapTicker.isChanged + ", subscribedSrcSymbols.contains " + symbol + ": " + this.subscribedSrcSymbols.contains(symbol))
+            if (snapTicker.isChanged && this.subscribedSrcSymbols.contains(symbol)) {
               val ticker = new Ticker
               ticker.uniSymbol = symbol
-              ticker.copyFrom(tickerSnapshot)
+              ticker.copyFrom(snapTicker)
               tickers += ticker
             }
 

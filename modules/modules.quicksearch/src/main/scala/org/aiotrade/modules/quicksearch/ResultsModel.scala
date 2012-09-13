@@ -139,11 +139,11 @@ object ResultsModel extends AbstractListModel[ItemResult] with ActionListener {
 
 }
 
-case class ItemResult(category: CategoryResult, private val sRequest: SearchRequest, action: Runnable,
-                      private val $displayName: String,
-                      shortcut: List[_ <: KeyStroke], displayHint: String,
-                      //time of last access, used for recent searches
-                      var date: Date) {
+final case class ItemResult(category: CategoryResult, private val sRequest: SearchRequest, action: Runnable,
+                            private val $displayName: String,
+                            shortcut: List[_ <: KeyStroke], displayHint: String,
+                            //time of last access, used for recent searches
+                            var date: Date) {
 
   private val HTML = "<html>"
 

@@ -92,10 +92,10 @@ object Position {
   def apply() = new Position(null, Long.MinValue, null, Double.NaN, Double.NaN)
 }
 
-trait PositionEvent {
+sealed trait PositionEvent {
   def account: TradableAccount
   def position: Position
 }
-case class PositionOpened(val account: TradableAccount, val position: Position) extends PositionEvent
-case class PositionClosed(val account: TradableAccount, val position: Position) extends PositionEvent
-case class PositionChanged(val account: TradableAccount, val position: Position) extends PositionEvent
+final case class PositionOpened(val account: TradableAccount, val position: Position) extends PositionEvent
+final case class PositionClosed(val account: TradableAccount, val position: Position) extends PositionEvent
+final case class PositionChanged(val account: TradableAccount, val position: Position) extends PositionEvent

@@ -60,8 +60,7 @@ object IBTickerServer extends TickerServer with Singleton {
   }
     
   override protected def cancelRequest(contract: TickerContract) {
-    val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
-    tickerSnapshot.removeObservers
+    val snapTicker = snapTickerOf(contract.srcSymbol)
     ibWrapper.cancelMktDataRequest(contract.reqId)
   }
 
@@ -95,8 +94,8 @@ object IBTickerServer extends TickerServer with Singleton {
       }
       m_rc = true
 
-      val tickerSnapshot = tickerSnapshotOf(contract.srcSymbol)
-      val reqId = ibWrapper.reqMktData(this, m_contract, tickerSnapshot)
+      val snapTicker = snapTickerOf(contract.srcSymbol)
+      val reqId = ibWrapper.reqMktData(this, m_contract, snapTicker)
       contract.reqId = reqId
     }
   }

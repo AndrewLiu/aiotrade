@@ -10,11 +10,11 @@ import java.nio.channels.spi.SelectorProvider
 import scala.actors.Actor
 
 
-abstract class KeyEvent(key: SelectionKey)
-case class AcceptKey (key: SelectionKey) extends KeyEvent(key)
-case class ReadKey   (key: SelectionKey) extends KeyEvent(key)
-case class WriteKey  (key: SelectionKey) extends KeyEvent(key)
-case class ConnectKey(key: SelectionKey) extends KeyEvent(key)
+sealed abstract class KeyEvent(key: SelectionKey)
+final case class AcceptKey (key: SelectionKey) extends KeyEvent(key)
+final case class ReadKey   (key: SelectionKey) extends KeyEvent(key)
+final case class WriteKey  (key: SelectionKey) extends KeyEvent(key)
+final case class ConnectKey(key: SelectionKey) extends KeyEvent(key)
 
 object NioServer {
   val handler = new EchoWorker

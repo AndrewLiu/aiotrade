@@ -219,4 +219,4 @@ object Indicator {
   }
 }
 
-case class ComputeFrom(time: Long)
+final case class ComputeFrom(time: Long)

@@ -9,11 +9,11 @@ import scala.collection.JavaConversions._
 
 
 object SelectActor {
-  abstract class Event(sender: SelectActor)
-  case class Read   (sender: SelectActor) extends Event(sender)
-  case class Write  (sender: SelectActor) extends Event(sender)
-  case class Connect(sender: SelectActor) extends Event(sender)
-  case class Unknown(sender: SelectActor) extends Event(sender)
+  sealed abstract class Event(sender: SelectActor)
+  final case class Read   (sender: SelectActor) extends Event(sender)
+  final case class Write  (sender: SelectActor) extends Event(sender)
+  final case class Connect(sender: SelectActor) extends Event(sender)
+  final case class Unknown(sender: SelectActor) extends Event(sender)
 }
 
 import SelectActor._

@@ -43,7 +43,7 @@ import java.util.logging.Logger
 class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Boolean = true, durable: Boolean = false) extends AMQPDispatcher(factory, exchange) {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  class Queue private (val name: String, val durable: Boolean, val exclusive: Boolean, val autoDelete: Boolean) {
+  final class Queue private (val name: String, val durable: Boolean, val exclusive: Boolean, val autoDelete: Boolean) {
     override def equals(that: Any) = that match {
       case x: Queue => x.name == name
       case _ => false
@@ -61,13 +61,13 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
     def unapply(queue: Queue) = Some((queue.name, queue.durable, queue.exclusive, queue.autoDelete))
   }
 
-  case class Topic(name: String, bindingQueue: String) {
+  private case class Topic(name: String, bindingQueue: String) {
     override def toString = "Topic(" + name + " ~> " + bindingQueue + ")"
   }
 
-  case class ConsumeQueue(queue: Queue, isDefult: Boolean)
-  case class SubscribeTopic(topic: Topic)
-  case class UnsubscribeTopic(topic: Topic)
+  private case class ConsumeQueue(queue: Queue, isDefult: Boolean)
+  private case class SubscribeTopic(topic: Topic)
+  private case class UnsubscribeTopic(topic: Topic)
 
   private var _defaultQueue: Option[Queue] = None
   private var _consumingQueues = Map[String, Queue]()

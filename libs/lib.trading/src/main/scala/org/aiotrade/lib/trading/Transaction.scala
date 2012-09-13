@@ -20,7 +20,7 @@ trait Transaction {
   def order: Order
 }
 
-case class ExpensesTransaction(val time: Long, val amount: Double) extends Transaction {
+final case class ExpensesTransaction(val time: Long, val amount: Double) extends Transaction {
   def this(amount: Double) = this(System.currentTimeMillis, amount)
 
   val id = UUID.randomUUID.getMostSignificantBits
@@ -29,7 +29,7 @@ case class ExpensesTransaction(val time: Long, val amount: Double) extends Trans
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double) extends Transaction {
+final case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
   val description = "%s %s at %s".format(sec.uniSymbol, quantity, price)
   val amount = quantity * price
@@ -37,7 +37,7 @@ case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, p
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-case class TradeTransaction(val time: Long, val order: Order, chunks: Array[SecurityTransaction], expenses: ExpensesTransaction) extends Transaction {
+final case class TradeTransaction(val time: Long, val order: Order, chunks: Array[SecurityTransaction], expenses: ExpensesTransaction) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
   val description = "Order %s".format(order)
 

@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-class Company {
+final class Company {
   var sec: Sec = _
 
   var validFrom: Long = _

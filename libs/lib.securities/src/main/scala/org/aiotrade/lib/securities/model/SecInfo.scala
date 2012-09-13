@@ -34,7 +34,7 @@ import ru.circumflex.orm.Table
 import ru.circumflex.orm._
 
 
-class SecInfo extends BelongsToSec {
+final class SecInfo extends BelongsToSec {
   
   /** 
    * @note in case of BelongsToSec.self is SecInfo, the sec.uniSymbol will be fetched from its secInfo

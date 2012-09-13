@@ -18,7 +18,7 @@ import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TFreq
 
 @serializable
-class PriceDistribution extends BelongsToSec with TVal with Flag {
+final class PriceDistribution extends BelongsToSec with TVal with Flag {
 
   private var _time: Long = _
   def time = _time
@@ -60,7 +60,7 @@ class PriceDistribution extends BelongsToSec with TVal with Flag {
 }
 
 @serializable
-class PriceCollection extends BelongsToSec with TVal with Flag  {
+final class PriceCollection extends BelongsToSec with TVal with Flag  {
   @transient
   val cal = Calendar.getInstance
   private var map = mutable.Map[String, PriceDistribution]()

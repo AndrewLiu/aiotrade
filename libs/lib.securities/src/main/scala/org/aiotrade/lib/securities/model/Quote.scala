@@ -50,7 +50,7 @@ import scala.collection.mutable
  * @author Caoyuan Deng
  */
 @serializable
-class Quote extends BelongsToSec with TVal with Flag {
+final class Quote extends BelongsToSec with TVal with Flag {
 
   private var _time: Long = _
   def time = _time

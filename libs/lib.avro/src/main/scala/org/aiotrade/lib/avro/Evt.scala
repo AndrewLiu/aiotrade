@@ -71,7 +71,7 @@ import scala.collection.mutable
  * @author Caoyuan Deng
  */
 
-case class Msg[T](tag: Int, value: T)
+final case class Msg[T](tag: Int, value: T)
 
 /**
  * We don't encourage to use 'object anApi extends Evt[T](..)' to define an Evt, 
@@ -463,7 +463,7 @@ private[avro] object TestAPIs {
   //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
   // """)
 
-  case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
+  final case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
     def this() = this(null, 0, 0.0, Array())
     override def toString = "TestData(" + x1 + "," + x2 + "," + x3 + "," + x4.mkString("[", ",", "]")
   }

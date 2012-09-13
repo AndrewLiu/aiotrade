@@ -38,7 +38,7 @@ import org.aiotrade.lib.util.actors.Publisher
  *
  * @author Caoyuan Deng
  */
-case class AddAll[V <: TVal](values: Array[V])
+final case class AddAll[V <: TVal](values: Array[V])
 trait TSer extends Publisher {
 
 //  ----- actor's implementation
@@ -126,49 +126,49 @@ trait TSerEvent {
 object TSerEvent {
   type Callback = () => Unit
 
-  case class Refresh(
+  final case class Refresh(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class Loaded(
+  final case class Loaded(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class Updated(
+  final case class Updated(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class Closed(
+  final case class Closed(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class Computed(
+  final case class Computed(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class Cleared(
+  final case class Cleared(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
     lastObject: AnyRef = null,
     callback: Callback = null) extends TSerEvent
-  case class ToBeSet(
+  final case class ToBeSet(
     source: TSer,
     symbol: String,
     fromTime: Long,

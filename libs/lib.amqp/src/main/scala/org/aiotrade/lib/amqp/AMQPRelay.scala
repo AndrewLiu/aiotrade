@@ -13,7 +13,7 @@ import java.io.IOException
  * 
  * @author guibin
  */
-case class AMQPAcknowledge(deliveryTag: Long)
+final case class AMQPAcknowledge(deliveryTag: Long)
   
 object AMQPRelay {
 

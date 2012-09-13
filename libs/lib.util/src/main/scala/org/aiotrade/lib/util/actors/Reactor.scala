@@ -12,7 +12,7 @@ package org.aiotrade.lib.util.actors
 
 import java.util.logging.Logger
 import org.aiotrade.lib.util.reactors.Reactions
-import scala.actors.Actor._
+//import scala.actors.Actor._
 
 /**
  * The counterpart to publishers. Listens to events from registered publishers.

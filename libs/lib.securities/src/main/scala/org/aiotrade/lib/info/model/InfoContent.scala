@@ -21,9 +21,9 @@ trait InfoHelper {
 }
 
 
-case class NewsContent(title: String, summary: String, publishTime: Long,
-                       sourceName: String, link: String, publisher: String,
-                       combineCount: Int, uniSymbol: String, subject: String) extends InfoContent with InfoHelper{
+final case class NewsContent(title: String, summary: String, publishTime: Long,
+                             sourceName: String, link: String, publisher: String,
+                             combineCount: Int, uniSymbol: String, subject: String) extends InfoContent with InfoHelper{
   def export = {
     List("TITLE" -> check(title),
          "SUMMARY" -> check(summary),
@@ -64,9 +64,9 @@ object NewsContent {
     
 }
 
-case class FilingContent(title: String,  publishTime: Long, link: String, 
-                         publisher: String, uniSymbol: String,
-                         fileType: String, fileSize: Int) extends InfoContent with InfoHelper{
+final case class FilingContent(title: String,  publishTime: Long, link: String, 
+                               publisher: String, uniSymbol: String,
+                               fileType: String, fileSize: Int) extends InfoContent with InfoHelper{
   def export = {
     List("TITLE" -> check(title),
          "PUBLISH_TIME" -> publishTime,
@@ -101,9 +101,9 @@ object FilingContent{
   }
 }
 
-case class AnalysisReportContent(title: String, summary: String, publishTime: Long,
-                                 link: String, publisher: String,var uniSymbol: String,
-                                 sourceName: String, subject: String) extends InfoContent with InfoHelper{
+final case class AnalysisReportContent(title: String, summary: String, publishTime: Long,
+                                       link: String, publisher: String,var uniSymbol: String,
+                                       sourceName: String, subject: String) extends InfoContent with InfoHelper{
   def export = {
     List("TITLE" -> check(title),
          "SUMMARY" -> check(summary),
@@ -141,8 +141,8 @@ object AnalysisReportContent{
   }
 }
 
-case class NotificationContent(title: String, content: String, 
-                               publishTime: Long, link: String) extends InfoContent with InfoHelper{
+final case class NotificationContent(title: String, content: String, 
+                                     publishTime: Long, link: String) extends InfoContent with InfoHelper{
   def export = {
     List("TITLE" -> check(title),
          "CONTENT" -> check(content),
@@ -171,7 +171,7 @@ object NotificationContent {
   }
 }
 
-case class SecPoolContent(startFrom: Long,  tpe: String, uniSymbol: String, symbolName: String) extends InfoContent with InfoHelper {
+final case class SecPoolContent(startFrom: Long,  tpe: String, uniSymbol: String, symbolName: String) extends InfoContent with InfoHelper {
   def link = System.currentTimeMillis.toString
   def publishTime = startFrom
   def export = (startFrom, check(tpe), check(uniSymbol), check(symbolName))
@@ -193,7 +193,7 @@ object SecPoolContent {
   }
 }
 
-case class BullVSBearContent(optimismRatio: Float, analysis: String, predictTime: Long) extends InfoContent with InfoHelper {
+final case class BullVSBearContent(optimismRatio: Float, analysis: String, predictTime: Long) extends InfoContent with InfoHelper {
   def link = predictTime.toString
   def publishTime = predictTime
   def export = (optimismRatio, check(analysis), predictTime)

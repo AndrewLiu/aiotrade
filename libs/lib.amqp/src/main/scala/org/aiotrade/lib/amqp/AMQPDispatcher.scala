@@ -137,7 +137,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
 //  protected def useActor = true
 
-  case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
+  private case class State(connection: Option[Connection], channel: Option[Channel], consumer: Option[Consumer])
   private var state = State(None, None, None)
 
   private var reconnectDelay: Long = AMQPDispatcher.defaultReconnectDelay

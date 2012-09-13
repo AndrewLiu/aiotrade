@@ -47,12 +47,12 @@ import org.aiotrade.lib.util.pinyin.PinYin
 import ru.circumflex.orm._
 import scala.collection.mutable
 
-case class SecsAddedToDb(secs: Array[Sec])
-case class SecInfosAddedToDb(secInfo: Array[SecInfo])
-case class SecAdded(sec: Sec)
-case class SecInfoAdded(secInfo: SecInfo)
+final case class SecsAddedToDb(secs: Array[Sec])
+final case class SecInfosAddedToDb(secInfo: Array[SecInfo])
+final case class SecAdded(sec: Sec)
+final case class SecInfoAdded(secInfo: SecInfo)
 
-class Exchange extends CRCLongId with Ordered[Exchange] {
+final class Exchange extends CRCLongId with Ordered[Exchange] {
   import Exchange._
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -73,7 +73,7 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
   lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
 
-  trait TradingStatus {
+  sealed trait TradingStatus {
     def time: Long
     def timeInMinutes: Int
     override def toString = {
@@ -82,15 +82,15 @@ class Exchange extends CRCLongId with Ordered[Exchange] {
       this.getClass.getSimpleName + "(" + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + "," + time + "," + timeInMinutes + ")"
     }
   }
-  case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class ClosedDate(time: Long, timeInMinutes: Int) extends TradingStatus
-  case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class ClosedDate(time: Long, timeInMinutes: Int) extends TradingStatus
+  final case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
 
   private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
 

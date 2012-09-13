@@ -43,4 +43,4 @@ package org.aiotrade.modules.quicksearch.web;
  *
  * @author S. Aubrecht
  */
-case class Item(url: String, title: String, description: String)
+final case class Item(url: String, title: String, description: String)

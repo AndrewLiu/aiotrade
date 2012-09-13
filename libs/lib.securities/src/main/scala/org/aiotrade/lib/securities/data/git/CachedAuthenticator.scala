@@ -46,7 +46,7 @@ object CachedAuthenticator {
   /** 
    * Authentication data to remember and reuse. 
    */
-  case class CachedAuthentication(host: String, port: Int, user: String, pass: String) {
+  final case class CachedAuthentication(host: String, port: Int, user: String, pass: String) {
     def toPasswordAuthentication = new PasswordAuthentication(user, pass.toCharArray)
   }
 }

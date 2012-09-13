@@ -45,7 +45,7 @@ import scala.collection.mutable
  * The definition of "super/large/small block" will depond on amount
  */
 @serializable
-class MoneyFlow extends BelongsToSec with TVal with Flag {
+final class MoneyFlow extends BelongsToSec with TVal with Flag {
 
   @transient protected var _sector: Sector = _
   def sector = _sector

@@ -35,7 +35,6 @@ import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.api
-import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.securities.model.Tickers
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Execution
@@ -66,12 +65,12 @@ abstract class TickerServer extends DataServer[Ticker] {
 
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private lazy val uniSymbolToTickerSnapshot = mutable.Map[String, TickerSnapshot]()
+  private lazy val uniSymbolToSnapTicker = mutable.Map[String, Ticker]()
 
-  def tickerSnapshotOf(uniSymbol: String): TickerSnapshot = uniSymbolToTickerSnapshot synchronized {
-    uniSymbolToTickerSnapshot.get(uniSymbol).getOrElse{
-      val newOne = new TickerSnapshot
-      uniSymbolToTickerSnapshot += (uniSymbol -> newOne)
+  def snapTickerOf(uniSymbol: String): Ticker = uniSymbolToSnapTicker synchronized {
+    uniSymbolToSnapTicker.get(uniSymbol).getOrElse{
+      val newOne = new Ticker
+      uniSymbolToSnapTicker += (uniSymbol -> newOne)
       newOne.uniSymbol = uniSymbol
       newOne
     }

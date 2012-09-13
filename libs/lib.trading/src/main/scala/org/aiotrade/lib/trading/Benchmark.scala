@@ -10,7 +10,7 @@ import org.aiotrade.lib.util.actors.Reactor
  * @author Caoyuan Deng
  */
 class Benchmark(tradingService: TradingService) extends Reactor {
-  case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double, referNav: Double) {
+  final case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double, referNav: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
     override 
@@ -21,7 +21,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     }
   }
   
-  case class MarginCall(time: Long, availableFunds: Double, equity: Double, positionEquity: Double, positionMagin: Double) {
+  final case class MarginCall(time: Long, availableFunds: Double, equity: Double, positionEquity: Double, positionMagin: Double) {
     override 
     def toString = {
       "%1$tY.%1$tm.%1$td \t %2$ 8.2f \t %3$ 8.2f \t %4$ 8.2f \t %5$ 8.2f".format(
@@ -220,7 +220,21 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   /**
    * @param the current date calendar
-   * @param the day of month of settlement, last day of each week if -1 
+   * @param the day of settlement, calendar day if -1 
+   */
+  private def getDailyReportTime(now: Calendar) = {
+    
+    if (now.getTimeInMillis > reportDayOfWeek) {
+      now.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
+    }
+    
+    now.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
+    now.getTimeInMillis
+  }
+
+  /**
+   * @param the current date calendar
+   * @param the day of week of settlement, last day of each week if -1 
    */
   private def getWeeklyReportTime(_reportDayOfWeek: Int = -1)(now: Calendar) = {
     val reportDayOfWeek = if (_reportDayOfWeek == -1) {

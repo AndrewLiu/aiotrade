@@ -60,7 +60,7 @@ object FileReceiver {
       /**
        * Indicates the current position of the parser.
        */
-      trait State
+      sealed trait State
       case class NumFiles(buf: Array[Byte], idx: Int, len: Int) extends State
       case class FileMeta(name: Option[String], buf: Array[Byte], idx: Int, len: Int) extends State
       case class FileData(out: OutputStream, idx: Long, len: Long) extends State

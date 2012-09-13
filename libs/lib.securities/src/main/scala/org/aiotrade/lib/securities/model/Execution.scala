@@ -37,7 +37,7 @@ import ru.circumflex.orm._
  * 
  * @author Caoyuan Deng
  */
-class Execution extends BelongsToSec with TVal {
+final class Execution extends BelongsToSec with TVal {
   import Execution._
 
   private var _time: Long = _

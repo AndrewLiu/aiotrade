@@ -44,4 +44,4 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Envelope
 
 @serializable
-case class AMQPMessage(body: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null)
+final case class AMQPMessage(body: Any, props: AMQP.BasicProperties = new AMQP.BasicProperties.Builder().build, envelope: Envelope = null)

@@ -44,9 +44,9 @@ class RichInfo extends TVal {
   }
 }
 
-case class RichInfoSnapshot(publishTime : Long, title: String, url : String,
-                            combinValue : Long, content : String, summary : String,
-                            category : List[ContentCategory], secs : List[Sec] ) {
+final case class RichInfoSnapshot(publishTime : Long, title: String, url : String,
+                                  combinValue : Long, content : String, summary : String,
+                                  category : List[ContentCategory], secs : List[Sec] ) {
 
   def export: mutable.Map[String, Any]= {
     mutable.Map[String, Any]("publishTime" -> publishTime,
@@ -60,7 +60,7 @@ case class RichInfoSnapshot(publishTime : Long, title: String, url : String,
   }
 }
 
-case class RichInfoSnapshots(events : List[RichInfoSnapshot]) {
+final case class RichInfoSnapshots(events : List[RichInfoSnapshot]) {
   def export: List[mutable.Map[String, Any]] = for(event <- events) yield event.export
 }
 

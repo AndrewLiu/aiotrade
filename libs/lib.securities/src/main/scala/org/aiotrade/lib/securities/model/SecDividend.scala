@@ -34,7 +34,7 @@ import java.io.Serializable
 import ru.circumflex.orm.Table
 
 @serializable
-class SecDividend extends BelongsToSec  {
+final class SecDividend extends BelongsToSec  {
   var prevClose: Double = _
   var cashBonus: Double = _
   var shareBonus: Double = _ // bonus issue, entitle bonus share

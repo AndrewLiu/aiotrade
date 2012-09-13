@@ -40,7 +40,6 @@ import org.aiotrade.lib.math.timeseries.TUnit
 import org.aiotrade.lib.math.timeseries.datasource.DataServer
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.securities.TickerSnapshot
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Ticker
 import scala.collection.immutable.TreeMap
@@ -215,13 +214,13 @@ object IBWrapper extends IBWrapper {
     return reqId
   }
     
-  def reqMktData(requestor: DataServer[_], contract: Contract, tickerSnapshot: TickerSnapshot): Int = {
+  def reqMktData(requestor: DataServer[_], contract: Contract, snapTicker: Ticker): Int = {
     val reqId = askReqId
         
     val mktReq = MarketDataRequest(
       contract,
       new ArrayList[Ticker](),
-      tickerSnapshot,
+      snapTicker,
       reqId
     )
         
@@ -250,10 +249,10 @@ object IBWrapper extends IBWrapper {
     reqIdToMktDataReq.contains(reqId)
   }
     
-  private def tickerSnapshotOf(reqId: Int): TickerSnapshot = {
+  private def snapTickerOf(reqId: Int): Ticker = {
     reqIdToMktDataReq.get(reqId) match {
       case None => null
-      case Some(mktReq) => mktReq.snapshotTicker
+      case Some(mktReq) => mktReq.snapTicker
     }
   }
     
@@ -335,7 +334,7 @@ object IBWrapper extends IBWrapper {
     
   override def tickPrice(tickerId: Int, field: Int, price: Double, canAutoExecute: Int) {
     // received price tick
-    val snapshot = tickerSnapshotOf(tickerId)
+    val snapshot = snapTickerOf(tickerId)
     if (snapshot == null) {
       return
     }
@@ -376,7 +375,7 @@ object IBWrapper extends IBWrapper {
     }
 
     // @todo who is observe it
-    snapshot.notifyChanged
+    //snapshot.notifyChanged
         
     //System.out.println("id=" + tickerId + "  " + TickType.getField( field) + "=" + price + " " +
     //(canAutoExecute != 0 ? " canAutoExecute" : " noAutoExecute"));
@@ -492,7 +491,7 @@ object IBWrapper extends IBWrapper {
   private case class MarketDataRequest(
     contract: Contract,
     storage: ArrayList[Ticker],
-    snapshotTicker: TickerSnapshot,
+    snapTicker: Ticker,
     reqId: Int
   )
 

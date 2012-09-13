@@ -9,9 +9,9 @@ import scala.actors.Actor
 import scala.collection.immutable.Queue
 import scala.collection.mutable
 
-case class ProcessData(reactor: Actor, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
-case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
-case class SetResponseHandler(channel: SocketChannel, rspHandler: Option[Actor])
+final case class ProcessData(reactor: Actor, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
+final case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
+final case class SetResponseHandler(channel: SocketChannel, rspHandler: Option[Actor])
 
 object SelectReactor {
 

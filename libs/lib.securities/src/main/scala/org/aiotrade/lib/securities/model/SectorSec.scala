@@ -36,7 +36,7 @@ import ru.circumflex.orm.Table
 /**
  * @author Caoyuan Deng
  */
-class SectorSec {
+final class SectorSec {
   @transient var sector: Sector = _
   @transient var sec: Sec = _
 

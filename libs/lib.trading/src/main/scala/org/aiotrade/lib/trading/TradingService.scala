@@ -23,6 +23,6 @@ object NoParam extends Param {
   override def toString = "P()"
 }
 
-case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
-case class ReportData(name: String, id: Int, time: Long, value: Double)
+final case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
+final case class ReportData(name: String, id: Int, time: Long, value: Double)
 

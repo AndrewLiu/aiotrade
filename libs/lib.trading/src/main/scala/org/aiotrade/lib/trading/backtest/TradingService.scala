@@ -95,7 +95,7 @@ object TradingService {
   def main(args: Array[String]) {
     import org.aiotrade.lib.indicator.basic.signal._
 
-    case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
+    final case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
       override def shortDescription = List(faster, slow, signal).mkString("_")
     }
     

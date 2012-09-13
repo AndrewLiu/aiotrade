@@ -6,7 +6,7 @@ import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
 import scala.actors.Actor
 
-case class InterestInOps(channel: SocketChannel, ops: Int)
+final case class InterestInOps(channel: SocketChannel, ops: Int)
 
 class SelectDispatcher(selector: Selector) extends Actor {
 

@@ -45,15 +45,15 @@ trait Broker extends Publisher {
 }
 
 
-case class BrokerException(message: String, cause: Throwable) extends Exception(message, cause)
+final case class BrokerException(message: String, cause: Throwable) extends Exception(message, cause)
 
-trait OrderDelta {
+sealed trait OrderDelta {
   def order: Order
 }
 object OrderDelta {
-  case class Added(order: Order) extends OrderDelta
-  case class Removed(order: Order) extends OrderDelta
-  case class Updated(order: Order) extends OrderDelta  
+  final case class Added(order: Order) extends OrderDelta
+  final case class Removed(order: Order) extends OrderDelta
+  final case class Updated(order: Order) extends OrderDelta  
 }
 
-case class OrderDeltasEvent(broker: Broker, deltas: Seq[OrderDelta])
+final case class OrderDeltasEvent(broker: Broker, deltas: Seq[OrderDelta])

@@ -17,20 +17,17 @@ import scala.collection.mutable.{Buffer, ListBuffer}
 object Reactions {
   import scala.ref._
 
-  class Impl extends Reactions {
+  final class Impl extends Reactions {
     val log = Logger.getLogger(getClass.getName)
     private val parts: Buffer[Reaction] = new ListBuffer[Reaction]
     def isDefinedAt(e: Any) = parts.exists(_ isDefinedAt e)
     def += (r: Reaction): this.type = { parts += r; this }
     def -= (r: Reaction): this.type = { parts -= r; this }
     def apply(e: Any) {
-      try{
-        for (p <- parts) if (p isDefinedAt e) p(e)
-      }
-      catch{
-        case ex =>
-          log.severe(ex.getMessage)
-          log.severe(ex.getStackTraceString)
+      try {
+        for (p <- parts if p isDefinedAt e) p(e)
+      } catch {
+        case ex => log.log(Level.SEVERE, ex.getMessage, ex)
       }
     }
   }
@@ -42,7 +39,7 @@ object Reactions {
    */
   trait StronglyReferenced
 
-  class Wrapper(listener: Any)(r: Reaction) extends Reaction with StronglyReferenced with Proxy {
+  final class Wrapper(listener: Any)(r: Reaction) extends Reaction with StronglyReferenced with Proxy {
     def self = listener
     def isDefinedAt(e: Any) = r.isDefinedAt(e)
     def apply(e: Any) { r(e) }

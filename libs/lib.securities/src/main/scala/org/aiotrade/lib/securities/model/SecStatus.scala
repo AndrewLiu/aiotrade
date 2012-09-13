@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-class SecStatus extends BelongsToSec {
+final class SecStatus extends BelongsToSec {
 
   var validFrom: Long = _
   var validTo: Long = _

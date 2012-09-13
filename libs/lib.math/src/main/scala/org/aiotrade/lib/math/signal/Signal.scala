@@ -38,14 +38,14 @@ import java.awt.Color
  *
  * @author Caoyuan Deng
  */
-case class SignalEvent(source: SignalIndicator, signal: Signal)
-case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
+final case class SignalEvent(source: SignalIndicator, signal: Signal)
+final case class SignalsEvent(source: SignalIndicator, signals: Array[Signal])
 
 /** Helper classes to carray full information of signal/signals */
-case class SignalX(symbol: String, name: String, freq: String, signal: Signal) {
+final case class SignalX(symbol: String, name: String, freq: String, signal: Signal) {
   def this() = this(null, null, null, null) /* for serializable */
 }
-case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal]) {
+final case class SignalsX(symbol: String, name: String, freq: String, signals: Array[Signal]) {
   def this() = this(null, null, null, null) /* for serializable */
 }
 
@@ -54,11 +54,11 @@ case class SignalsX(symbol: String, name: String, freq: String, signals: Array[S
  *   Signal coundn't be abstract class 
  *   Don't write Sign/Mark as case class
  */
-class Sign private (time: => Long, 
-                    kind: => Side, 
-                    id: => Int, 
-                    text: => String, 
-                    color: => Color
+final class Sign private (time: => Long, 
+                          kind: => Side, 
+                          id: => Int, 
+                          text: => String, 
+                          color: => Color
 ) extends Signal(time, kind, id, text, color) {
   def this() = this(0L, Side.EnterLong, 0, null, null) /* for serializable */
   override def kind = super.kind.asInstanceOf[Side]
@@ -72,11 +72,11 @@ object Sign {
   }
 }
 
-class Mark private (time: => Long, 
-                    kind: => Corner, 
-                    id: => Int, 
-                    text: => String, 
-                    color: => Color
+final class Mark private (time: => Long, 
+                          kind: => Corner, 
+                          id: => Int, 
+                          text: => String, 
+                          color: => Color
 ) extends Signal(time, kind, id, text, color) {
   def this() = this(0L, Corner.Lower, 0, null, null) /* for serializable */
   override def kind = super.kind.asInstanceOf[Corner]

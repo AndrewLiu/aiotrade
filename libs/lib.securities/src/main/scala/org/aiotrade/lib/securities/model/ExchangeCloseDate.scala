@@ -32,7 +32,7 @@ package org.aiotrade.lib.securities.model
 
 import ru.circumflex.orm.Table
 
-class ExchangeCloseDate {
+final class ExchangeCloseDate {
   var exchange: Exchange = _
 
   var fromTime: Long = _

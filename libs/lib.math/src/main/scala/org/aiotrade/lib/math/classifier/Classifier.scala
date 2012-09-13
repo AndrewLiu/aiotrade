@@ -17,7 +17,7 @@ trait Classifier {
   def classify(instance: Instance): Concept
 }
 
-case class Attribute[+T](name: String, value: T)
+final case class Attribute[+T](name: String, value: T)
 
 trait Concept {
   def name: String

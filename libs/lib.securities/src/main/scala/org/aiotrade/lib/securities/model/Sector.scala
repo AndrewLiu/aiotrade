@@ -54,7 +54,7 @@ import ru.circumflex.orm._
  *
  * @author Caoyuan Deng
  */
-class Sector extends LightSector with SerProvider with Ordered[Sector] {
+final class Sector extends LightSector with SerProvider with Ordered[Sector] {
   private val log = Logger.getLogger(getClass.getName)
   private val mutex = new AnyRef()
 

@@ -5,4 +5,4 @@
 
 package org.aiotrade.lib.util.swing.table
 
-case class Dim(nRows: Int, nCols: Int)
+final case class Dim(nRows: Int, nCols: Int)

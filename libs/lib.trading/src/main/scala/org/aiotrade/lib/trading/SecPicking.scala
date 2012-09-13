@@ -10,7 +10,7 @@ import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
 
-case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
+final case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
 
 /**
  * 

@@ -57,6 +57,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
   type C <: DataContract[_]
 
   private case class RequestData(contracts: Iterable[C])
+  // @Note due to bug in PartialFunction, the inner final case class will cause isDefinedAt won't be compiled
   case class DataLoaded(values: Array[V], contract: C)
   case class DataProcessed(contract: C)
 
@@ -305,7 +306,7 @@ object DataServer extends Publisher {
 
   private val config = org.aiotrade.lib.util.config.Config()
   private val heartBeatInterval = config.getInt("dataserver.heartbeat", 318)
-  case class HeartBeat(interval: Long) 
+  final case class HeartBeat(interval: Long) 
   
   // in context of applet, a page refresh may cause timer into a unpredict status,
   // so it's always better to restart this timer? , if so, cancel it first.

@@ -442,7 +442,7 @@ class Util {
   }
 
   def releaseAll {
-    // Since ticker server is singleton, will be reused in browser, should unSubscribe it to get tickerSnapshot etc to be reset
+    // Since ticker server is singleton, will be reused in browser, should unSubscribe it to get snapTicker etc to be reset
     sec.unSubscribeTickerServer
   }
 }
