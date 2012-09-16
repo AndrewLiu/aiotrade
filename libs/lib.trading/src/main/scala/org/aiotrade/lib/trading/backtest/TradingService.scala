@@ -22,14 +22,20 @@ import scala.collection.mutable
 import scala.concurrent.SyncVar
 
 class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
-                     _referSer: securities.QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*)
-extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
+                     _referSer: securities.QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
+) extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
 
   private case class Go(fromTime: Long, toTime: Long)
   private val done = new SyncVar[Boolean]()
   
   reactions += {
-    case Go(fromTime, toTime) => doGo(fromTime, toTime)
+    case Go(fromTime, toTime) => 
+      doGo(fromTime, toTime)
+      
+      // release resources. @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
+      deafTo(Signal)
+      done.set(true)
+      org.aiotrade.lib.math.indicator.Function.releaseAll
   }
 
   /**
@@ -53,14 +59,8 @@ extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _
     var i = fromIdx
     while (i <= toIdx) {
       go(i)
-
       i += 1
     }
-    
-    // release resources. @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
-    deafTo(Signal)
-    done.set(true)
-    org.aiotrade.lib.math.indicator.Function.releaseAll
   }
 }
 
@@ -95,7 +95,7 @@ object TradingService {
   def main(args: Array[String]) {
     import org.aiotrade.lib.indicator.basic.signal._
 
-    final case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
+    case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
       override def shortDescription = List(faster, slow, signal).mkString("_")
     }
     

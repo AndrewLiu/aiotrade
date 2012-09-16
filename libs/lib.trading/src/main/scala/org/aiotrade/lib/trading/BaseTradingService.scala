@@ -25,7 +25,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   val benchmark = new Benchmark(this)
   
-  protected val timestamps = referSer.timestamps.clone
+  protected val timestamps = referSer.timestamps
   protected val freq = referSer.freq
 
   protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
