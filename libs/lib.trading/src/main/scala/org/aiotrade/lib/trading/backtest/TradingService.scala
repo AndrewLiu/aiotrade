@@ -32,12 +32,19 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
     case Go(fromTime, toTime) => 
       doGo(fromTime, toTime)
       
-      // release resources. @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
-      deafTo(Signal)
       done.set(true)
-      org.aiotrade.lib.math.indicator.Function.releaseAll
   }
 
+  /** 
+   * Release resources. Call only when necessary
+   * 
+   * @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
+   */
+  def release {
+    deafTo(Signal)
+    org.aiotrade.lib.math.indicator.Function.releaseAll
+  }
+  
   /**
    * Main entrance for outside caller.
    * 
@@ -149,6 +156,7 @@ object TradingService {
     
       chartReport.roundStarted(List(param))
       tradingService.go(fromTime, toTime)
+      tradingService.release
       chartReport.roundFinished
       System.gc
     }
